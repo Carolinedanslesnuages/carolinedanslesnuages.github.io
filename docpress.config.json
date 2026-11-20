@@ -2,7 +2,9 @@
   "usernames": [
     "Carolinedanslesnuages"
   ],
-  "reposFilter": [],
+  "reposFilter": [
+    "irene"
+  ],
   "contributions": false,
   "sidebarMode": "multi",
   "vitepressConfig": {
@@ -58,7 +60,10 @@
           }
         }
       }
-    }
+    },
+    "ignoreDeadLinks": [
+      "./adr/introduction"
+    ]
   },
   "hero": {
     "name": "carolinedanslesnuages",
@@ -68,5 +73,9 @@
   },
   "extraTheme": [
     "./theme"
+  ],
+  "acronyms": [
+    "ADR",
+    "RGAA"
   ]
 }
