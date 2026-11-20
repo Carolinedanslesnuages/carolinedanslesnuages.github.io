@@ -38,16 +38,15 @@
       "accroche": "Vérificateur de skills"
     },
     {
+      "depot": "niki",
+      "accroche": "Ce cyberdeck, en modèle réutilisable"
+    },
+    {
       "depot": "Irene",
       "nom": "Irène",
       "accroche": "Alerte anti-arnaques administratives",
       "etat": "essai"
     }
   ],
-  "bientot": [
-    {
-      "nom": "Niki",
-      "accroche": "Ce cyberdeck, en modèle réutilisable"
-    }
-  ]
+  "bientot": []
 }
