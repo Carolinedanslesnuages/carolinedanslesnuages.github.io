@@ -1,0 +1,14 @@
+/* Titre de la page d'accueil plus discret */
+:root .VPHero .name,
+:root .VPHero .text {
+  font-size: 32px;
+  line-height: 40px;
+}
+
+@media (min-width: 640px) {
+  :root .VPHero .name,
+  :root .VPHero .text {
+    font-size: 40px;
+    line-height: 48px;
+  }
+}

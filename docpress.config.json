@@ -66,9 +66,9 @@
     "name": "carolinedanslesnuages",
     "text": "Projets open source",
     "tagline": "Petits projets simples et documentés.",
-    "image": {
-      "src": "https://avatars.githubusercontent.com/u/45307611?v=4",
-      "alt": "carolinedanslesnuages"
-    }
-  }
+    "image": null
+  },
+  "extraTheme": [
+    "./theme"
+  ]
 }
