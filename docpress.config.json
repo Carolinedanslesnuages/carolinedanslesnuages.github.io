@@ -60,10 +60,7 @@
           }
         }
       }
-    },
-    "ignoreDeadLinks": [
-      "./adr/introduction"
-    ]
+    }
   },
   "hero": {
     "name": "carolinedanslesnuages",
