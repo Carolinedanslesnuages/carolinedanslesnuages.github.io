@@ -22,14 +22,32 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.docpress.outputs.page_url }}
+      url: ${{ steps.docpress.outputs.page_url || steps.attente-deploy.outputs.page_url }}
     steps:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
+      # Un reposFilter vide ferait publier TOUS les dépôts publics : on l'interdit.
+      - name: Lire la liste des projets
+        id: projets
+        run: echo "nombre=$(jq '.reposFilter | length' docpress.config.json)" >> "$GITHUB_OUTPUT"
+
       - name: Construire et déployer le site
+        if: steps.projets.outputs.nombre != '0'
         id: docpress
         uses: this-is-tobi/docpress-action@v0.2.2
         with:
           config: ./docpress.config.json
           deploy: true
+
+      # Aucun projet listé : page d'attente
+      - name: Préparer la page d'attente
+        if: steps.projets.outputs.nombre == '0'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./attente
+
+      - name: Déployer la page d'attente
+        if: steps.projets.outputs.nombre == '0'
+        id: attente-deploy
+        uses: actions/deploy-pages@v4

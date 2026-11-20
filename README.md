@@ -9,3 +9,5 @@ Site des projets open source de Carolinedanslesnuages, généré avec [Docpress]
 3. Pousser sur `main` : le site se reconstruit et se déploie tout seul.
 
 La documentation de chaque projet vient de son dossier `docs/` (fichiers préfixés `01-`, `02-`… pour l'ordre) ou, à défaut, de son `README.md`.
+
+Tant que `reposFilter` est vide, le site affiche la page d'attente du dossier `attente/` (Docpress n'est pas lancé : un filtre vide publierait tous les dépôts publics).
