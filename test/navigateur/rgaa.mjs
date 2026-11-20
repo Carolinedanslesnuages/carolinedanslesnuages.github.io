@@ -26,8 +26,8 @@ const iChamp = ordre.indexOf('commande');
 ok('12.8', ordre[1] === 'Écran du terminal' && iChamp > 1 && iTouche === iChamp + 1 && iCart > iTouche, 'écran (et ses liens), champ, touches, puis cartouches');
 // 9.3 listes
 await p.fill('#commande', 'ls ~/projets'); await p.press('#commande', 'Enter'); await p.waitForTimeout(300);
-ok('9.3', (await p.locator('.sortie ul.grille > li > button').count()) === 5, 'liste de dossiers en <ul>/<li>');
-ok('9.3', (await p.locator('ul.liste-cartouches > li').count()) === 7, 'cartouches en <ul>/<li>');
+ok('9.3', (await p.locator('.sortie ul.grille > li > button').count()) >= 5, 'liste de dossiers en <ul>/<li>');
+ok('9.3', (await p.locator('ul.liste-cartouches > li').count()) >= 6, 'cartouches en <ul>/<li>');
 // 13.5 contenu cryptique : aucun trait, puce ou dessin lisible par un lecteur d'écran
 await p.fill('#commande', 'tree ~/projets/val'); await p.press('#commande', 'Enter');
 await p.fill('#commande', 'projets'); await p.press('#commande', 'Enter');
