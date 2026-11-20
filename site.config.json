@@ -1,0 +1,25 @@
+{
+  "compte": "Carolinedanslesnuages",
+  "pseudo": "carolinedanslesnuages",
+  "accroche": "Des outils pour coder avec l'IA, tous les jours.",
+  "mots": ["dynamique", "curieuse", "créative"],
+  "presentation": [
+    "Je fabrique des outils pour coder avec l'IA au quotidien.",
+    "Ce qu'une IA écrit en deux minutes ne m'intéresse pas :",
+    "je garde ce qui demande des règles, des données justes,",
+    "et des erreurs vraiment vécues.",
+    "",
+    "Dynamique · curieuse · créative."
+  ],
+  "projets": [
+    { "depot": "constance", "accroche": "Mes règles de PR, partout pareilles" },
+    { "depot": "val", "accroche": "Le carbone de mon usage de l'IA" },
+    { "depot": "marguerite", "accroche": "Le RGAA officiel pour les agents" },
+    { "depot": "emilie", "nom": "Émilie", "accroche": "Banc d'essai de mes consignes d'agent" },
+    { "depot": "Irene", "nom": "Irène", "accroche": "Alerte anti-arnaques administratives", "etat": "essai" }
+  ],
+  "bientot": [
+    { "nom": "Olympe", "accroche": "Vérificateur de skills" },
+    { "nom": "Niki", "accroche": "Ce cyberdeck, en modèle réutilisable" }
+  ]
+}

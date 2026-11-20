@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  # Reconstruit chaque nuit pour reprendre la doc à jour des projets
+  # Reconstruit chaque nuit : versions et fichiers des projets à jour
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:
@@ -22,32 +22,31 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.docpress.outputs.page_url || steps.attente-deploy.outputs.page_url }}
+      url: ${{ steps.deploiement.outputs.page_url }}
     steps:
       - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
-      # Un reposFilter vide ferait publier TOUS les dépôts publics : on l'interdit.
-      - name: Lire la liste des projets
-        id: projets
-        run: echo "nombre=$(jq '.reposFilter | length' docpress.config.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Construire et déployer le site
-        if: steps.projets.outputs.nombre != '0'
-        id: docpress
-        uses: this-is-tobi/docpress-action@v0.2.2
+      - uses: actions/setup-node@v4
         with:
-          config: ./docpress.config.json
-          deploy: true
+          node-version: 22
+          cache: npm
 
-      # Aucun projet listé : page d'attente
-      - name: Préparer la page d'attente
-        if: steps.projets.outputs.nombre == '0'
-        uses: actions/upload-pages-artifact@v3
+      - run: npm ci
+      - run: npm test
+
+      # Seuls les dépôts publics de site.config.json sont collectés (refus sinon).
+      - name: Collecter les projets depuis GitHub
+        run: npm run collecter
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./attente
+          path: ./dist
 
-      - name: Déployer la page d'attente
-        if: steps.projets.outputs.nombre == '0'
-        id: attente-deploy
+      - name: Publier
+        id: deploiement
         uses: actions/deploy-pages@v4
