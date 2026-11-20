@@ -2,15 +2,19 @@
  * Le terminal : interprète une commande et renvoie des lignes à afficher, plus une annonce courte
  * pour les lecteurs d'écran (jamais tout le contenu). Fonctions pures, sans DOM.
  *
- * Une ligne : { classe?, morceaux: [texte | {entree} | {lien} | {marque} | {grille} | {code}] }
+ * Une ligne : { classe?, morceaux: [texte | {entree} | {lien} | {marque} | {grille} | {code} | {deco}] }
+ * {deco} : caractères purement visuels (traits d'arborescence, pointillés, puces, dessins),
+ * ignorés des lecteurs d'écran (RGAA 13.5 : pas de contenu cryptique sans alternative).
  */
 import { creerFS, affichable, resoudre, sansAccent } from './fichiers.js';
 
 const L = (texte, classe) => ({ classe, morceaux: [texte] });
+const D = (deco) => ({ deco });
+const lienGitHub = (url, libelle) => ({ morceaux: [D('→ '), { lien: { url, libelle } }] });
 const entree = (fs, chemin, libelle) => ({ entree: { chemin, libelle: libelle ?? fs.nomDe(chemin), dossier: fs.estDossier(chemin) } });
 const texteDe = (ligne) =>
   ligne.morceaux
-    .map((m) => (typeof m === 'string' ? m : m.entree ? m.entree.libelle + (m.entree.dossier ? '/' : '') : m.lien ? m.lien.libelle : m.marque ?? m.code ?? (m.grille ? m.grille.map((e) => e.entree.libelle).join(', ') : '')))
+    .map((m) => (typeof m === 'string' ? m : m.deco !== undefined ? '' : m.entree ? m.entree.libelle + (m.entree.dossier ? '/' : '') : m.lien ? m.lien.libelle : m.marque ?? m.code ?? (m.grille ? m.grille.map((e) => e.entree.libelle).join(', ') : '')))
     .join('');
 
 export function creerTerminal({ fichiers, donnees }) {
@@ -43,13 +47,13 @@ export function creerTerminal({ fichiers, donnees }) {
     if (fs.estDossier(cible)) return { lignes: [L(`cat : ${arg} est un dossier. Essayez « ls ${arg} ».`, 'att')] };
     const f = fs.FS[cible];
     if (typeof f.c !== 'string') {
-      return { lignes: [L(`${fs.nomDe(cible)} : fichier binaire ou trop gros pour l'écran.`, 'att'), { morceaux: [{ lien: { url: f.u, libelle: '→ le voir sur GitHub' } }] }] };
+      return { lignes: [L(`${fs.nomDe(cible)} : fichier binaire ou trop gros pour l'écran.`, 'att'), lienGitHub(f.u, 'le voir sur GitHub')] };
     }
     const contenu = f.c.replace(/\n$/, '').split('\n');
     const max = 250;
-    const lignes = [L(`── ${affichable(cible)} ──`, 'titre'), ...contenu.slice(0, max).map((t) => L(t, 'fichier'))];
+    const lignes = [{ classe: 'titre', morceaux: [D('── '), affichable(cible), D(' ──')] }, ...contenu.slice(0, max).map((t) => ({ ...L(t, 'fichier'), langue: f.l }))];
     if (contenu.length > max) lignes.push(L(`… ${contenu.length - max} lignes de plus.`, 'moi'));
-    if (f.u) lignes.push({ morceaux: [{ lien: { url: f.u, libelle: '→ ouvrir sur GitHub' } }] });
+    if (f.u) lignes.push(lienGitHub(f.u, 'ouvrir sur GitHub'));
     return { lignes, annonce: `Fichier ${affichable(cible)} affiché, ${contenu.length} lignes. L'écran du terminal se lit avec les flèches.` };
   }
 
@@ -64,7 +68,7 @@ export function creerTerminal({ fichiers, donnees }) {
         if (compte >= 90) return;
         compte++;
         const dernier = i === liste.length - 1;
-        lignes.push({ morceaux: [prefixe + (dernier ? '└── ' : '├── '), entree(fs, c)] });
+        lignes.push({ morceaux: [D(prefixe + (dernier ? '└── ' : '├── ')), entree(fs, c)] });
         if (fs.estDossier(c) && profondeur < 3) parcourir(c, prefixe + (dernier ? '    ' : '│   '), profondeur + 1);
       });
     })(cible, '', 1);
@@ -116,7 +120,7 @@ export function creerTerminal({ fichiers, donnees }) {
         L(`> ${p.nom.toLowerCase()}  (${etat})`, 'titre'),
         L(p.description || p.accroche),
         { morceaux: ['Ses fichiers : ', entree(fs, `projets/${p.dossier}`, `~/projets/${p.dossier}`)] },
-        { morceaux: [{ lien: { url: p.url, libelle: '→ le dépôt sur GitHub' } }] },
+        lienGitHub(p.url, `le dépôt ${p.nom} sur GitHub`),
       ],
     };
   }
@@ -139,8 +143,8 @@ export function creerTerminal({ fichiers, donnees }) {
     projets: () => ({
       lignes: [
         L('Cartouches installées :', 'titre'),
-        ...projets.map((p) => L(`  [${p.etat === 'en-cours' ? '◌' : '●'}] ${p.commande.padEnd(11)} ${(p.etat === 'essai' ? "projet d'essai" : p.version || 'en cours').padEnd(15)} ${p.accroche}`, p.etat === 'en-cours' ? 'att' : 'ok')),
-        ...(donnees.bientot || []).map((b) => L(`  [◌] ${b.nom.toLowerCase().padEnd(11)} ${'en préparation'.padEnd(15)} ${b.accroche}`, 'att')),
+        ...projets.map((p) => ({ classe: p.etat === 'en-cours' ? 'att' : 'ok', morceaux: [D(`  [${p.etat === 'en-cours' ? '◌' : '●'}] `), `${p.commande.padEnd(11)} ${(p.etat === 'essai' ? "projet d'essai" : p.version || 'en cours').padEnd(15)} ${p.accroche}`] })),
+        ...(donnees.bientot || []).map((b) => ({ classe: 'att', morceaux: [D('  [◌] '), `${b.nom.toLowerCase().padEnd(11)} ${'en préparation'.padEnd(15)} ${b.accroche}`] })),
         { morceaux: ['Parcourir : ', entree(fs, 'projets', '~/projets')] },
       ],
     }),
@@ -150,7 +154,15 @@ export function creerTerminal({ fichiers, donnees }) {
     tree,
     chercher,
     pwd: () => ({ lignes: [L(affichable(ici))] }),
-    nuages: () => ({ lignes: [L('      .--.        .--.', 'moi'), L('   .-(    ).  .-(    ).', 'moi'), L('  (___.__)__)(___.__)__)', 'moi'), L("Vous m'avez trouvée.", 'titre')] }),
+    nuages: () => ({
+      lignes: [
+        { classe: 'moi', morceaux: [D('      .--.        .--.')] },
+        { classe: 'moi', morceaux: [D('   .-(    ).  .-(    ).')] },
+        { classe: 'moi', morceaux: [D('  (___.__)__)(___.__)__)')] },
+        L('Deux petits nuages, dessinés en caractères.', 'moi'),
+        L("Vous m'avez trouvée.", 'titre'),
+      ],
+    }),
     sudo: () => ({ lignes: [L('Pas de sudo ici. Juste du thé et des tests verts.', 'att')] }),
     effacer: () => ({ lignes: [], effacer: true, annonce: 'Écran effacé.' }),
     couleur: () => ({ lignes: [], couleur: true }),
@@ -195,9 +207,9 @@ export function creerTerminal({ fichiers, donnees }) {
   const nbFichiers = Object.keys(fs.FS).filter((c) => !fs.FS[c].d).length;
   const demarrage = [
     L('NUAGES-OS 2.0  ·  démarrage', 'titre'),
-    L('mémoire ............ curiosité illimitée', 'ok'),
-    L(`fichiers ........... ${nbFichiers} montés dans ~/projets`, 'ok'),
-    L('café ............... à recharger', 'att'),
+    { classe: 'ok', morceaux: ['mémoire ', D('........... '), 'curiosité illimitée'] },
+    { classe: 'ok', morceaux: ['fichiers ', D('.......... '), `${nbFichiers} montés dans ~/projets`] },
+    { classe: 'att', morceaux: ['café ', D('.............. '), 'à recharger'] },
     L(''),
     L(donnees.accroche || ''),
     { classe: 'moi', morceaux: ['Tapez « aide », ouvrez ', entree(fs, 'lisez-moi.txt'), ', ou insérez une cartouche.'] },

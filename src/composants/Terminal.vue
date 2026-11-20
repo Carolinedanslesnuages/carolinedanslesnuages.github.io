@@ -111,7 +111,8 @@ defineExpose({ lancer, preparer });
 </script>
 
 <template>
-  <section class="ecran-cadre" aria-label="Terminal">
+  <section class="ecran-cadre" aria-labelledby="titre-terminal">
+    <h2 id="titre-terminal" class="vh">Terminal</h2>
     <div class="ecran-barre">
       <span><span class="led" aria-hidden="true"></span>nuages-os 2.0</span>
       <span aria-hidden="true">{{ heure }}</span>
@@ -119,7 +120,7 @@ defineExpose({ lancer, preparer });
     <div ref="ecran" class="ecran" tabindex="0" role="region" aria-label="Écran du terminal">
       <div class="sortie">
         <p v-if="!terminal" class="chargement">Chargement des dossiers…</p>
-        <p v-for="l in lignes" :key="l.id" :class="l.classe"><Morceau v-for="(m, i) in l.morceaux" :key="i" :m="m" @ouvrir="ouvrir" /></p>
+        <div v-for="l in lignes" :key="l.id" :class="['ligne', l.classe]" :lang="l.langue"><Morceau v-for="(m, i) in l.morceaux" :key="i" :m="m" @ouvrir="ouvrir" /></div>
       </div>
     </div>
     <p class="vh" role="status" aria-live="polite">{{ annonce }}</p>

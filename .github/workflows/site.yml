@@ -43,6 +43,16 @@ jobs:
 
       - run: npm run build
 
+      # Accessibilité (RGAA, critères lus avec Marguerite) et parcours dans un vrai navigateur :
+      # si un critère casse, le site n'est pas publié.
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Vérifier le site dans le navigateur (parcours + RGAA)
+        run: |
+          npx vite preview --port 4173 &
+          npx wait-on@8.0.1 -t 30000 http://localhost:4173/
+          npm run test:navigateur
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist

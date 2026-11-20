@@ -57,7 +57,7 @@ body {
   box-shadow: 0 2px 0 #fff inset, 0 -3px 0 rgba(43,29,63,.12) inset, 0 18px 40px -18px rgba(90,50,130,.45);
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
-  grid-template-areas: "ecran baie" "touches touches";
+  grid-template-areas: "ecran baie" "touches baie"; /* ordre visuel = ordre de tabulation (RGAA 12.8) */
   gap: 18px;
   transition: background .4s;
 }
@@ -81,7 +81,7 @@ body {
 .ecran-cadre { position: relative; }
 .balayage { position: absolute; inset: 52px 14px 66px; border-radius: 10px; pointer-events: none;
   background: repeating-linear-gradient(transparent 0 2px, rgba(0,0,0,.18) 2px 3px); mix-blend-mode: multiply; }
-.sortie p { margin: 0 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sortie .ligne { margin: 0 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .sortie .moi { color: var(--phosphore-doux); }
 .sortie .titre { color: #fff; }
 .sortie .ok { color: var(--menthe); }
@@ -90,7 +90,9 @@ body {
 .sortie code { font-family: var(--f-ecran); color: var(--menthe); }
 .sortie .entree { all: unset; cursor: pointer; color: #fff; border-bottom: 1px dotted var(--rose); }
 .sortie .entree.dossier { color: var(--menthe); }
-.sortie .entree:hover, .sortie .entree:focus-visible { background: color-mix(in srgb, var(--rose) 35%, transparent); outline: none; }
+.sortie .entree:hover, .sortie .entree:focus { background: color-mix(in srgb, var(--rose) 35%, transparent); }
+/* RGAA 10.7 : contour net à la prise de focus, en plus du fond */
+.sortie .entree:focus { outline: 2px solid var(--rose); outline-offset: 2px; }
 .sortie .grille { display: flex; flex-wrap: wrap; gap: 2px 18px; }
 .sortie mark { background: var(--rose); color: var(--ecran); text-shadow: none; padding: 0 2px; }
 .sortie .fichier { color: #f3e8ff; }
@@ -157,3 +159,18 @@ html { -webkit-text-size-adjust: 100%; }
 .cartouche-lien { text-decoration: none; color: inherit; }
 .sortie .entree { font: inherit; }
 .chargement { color: var(--phosphore-doux); }
+
+/* RGAA 12.7 : lien d'évitement, visible à la prise de focus */
+.evitement { position: absolute; left: 12px; top: -60px; z-index: 20; background: var(--encre); color: #fff; padding: 10px 16px; border-radius: 8px; font: 700 14px var(--f-tech); }
+.evitement:focus { top: 12px; outline: 3px solid var(--rose); outline-offset: 2px; }
+/* RGAA 3.3 : le champ de saisie se distingue à 3:1 au moins */
+.saisie input { border-bottom: 2px solid var(--phosphore-doux); }
+.saisie input::placeholder { color: var(--phosphore-doux); opacity: 1; }
+/* RGAA 9.3 : listes de fichiers et de cartouches, sans puces */
+.sortie ul.grille, .liste-cartouches { list-style: none; margin: 0; padding: 0; }
+.liste-cartouches { display: grid; gap: 12px; }
+.liste-cartouches > li { display: grid; }
+
+/* RGAA 10.11 : à 320 px, l écran et le champ rétrécissent au lieu de déborder du cadre */
+.ecran-cadre > * { min-width: 0; }
+.ecran { overflow-x: hidden; }
