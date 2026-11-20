@@ -3,8 +3,7 @@
     "Carolinedanslesnuages"
   ],
   "reposFilter": [
-    "irene",
-    "Ada"
+    "irene"
   ],
   "contributions": false,
   "sidebarMode": "multi",
@@ -85,7 +84,6 @@
     "./theme"
   ],
   "acronyms": [
-    "ADA",
     "ADR",
     "RGAA"
   ]
