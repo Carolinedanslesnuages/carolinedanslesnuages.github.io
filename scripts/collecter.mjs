@@ -15,6 +15,8 @@ const BRUT = 'https://raw.githubusercontent.com';
 const TEXTE = /\.(md|ya?ml|sh|ts|vue|js|mjs|cjs|css|html|txt|toml|json|csv)$|(^|\/)(LICENSE|Dockerfile)$/i;
 const TAILLE_MAX = 40000;
 const DOSSIERS_IGNORES = /(^|\/)(node_modules|dist)(\/|$)/;
+/** Fichiers rédigés en anglais (RGAA 8.7 : le changement de langue est signalé). */
+const EN_ANGLAIS = /(^|\/)LICEN[CS]E(\.md|\.txt)?$/i;
 
 const entetes = { Accept: 'application/vnd.github+json', 'User-Agent': 'site-cyberdeck' };
 if (process.env.GITHUB_TOKEN) entetes.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
@@ -51,6 +53,7 @@ async function collecterProjet(compte, p) {
       continue;
     }
     const f = { u: `${depot.html_url}/blob/${branche}/${e.path}` };
+    if (EN_ANGLAIS.test(e.path)) f.l = 'en';
     if (TEXTE.test(e.path) && e.size <= TAILLE_MAX) {
       const r = await fetch(`${BRUT}/${compte}/${p.depot}/${branche}/${e.path.split('/').map(encodeURIComponent).join('/')}`);
       if (r.ok) f.c = await r.text();

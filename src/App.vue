@@ -37,6 +37,7 @@ const etat = (p) => (p.etat === 'essai' ? 'essai' : p.version || 'en cours');
 </script>
 
 <template>
+  <a class="evitement" href="#commande">Aller au terminal</a>
   <div class="page">
     <header class="entete">
       <h1>{{ donnees.pseudo }}<span aria-hidden="true">_</span></h1>
@@ -58,20 +59,6 @@ const etat = (p) => (p.etat === 'essai' ? 'essai' : p.version || 'en cours');
 
       <Terminal ref="vue" :terminal="terminal" @couleur="changerCouleur" />
 
-      <aside class="baie" aria-labelledby="titre-baie">
-        <h2 id="titre-baie">Cartouches</h2>
-        <button v-for="p in donnees.projets" :key="p.dossier" class="cartouche" type="button" @click="vue && vue.lancer(p.commande)">
-          <span class="fente" aria-hidden="true"></span>
-          <span><b>{{ p.nom }}</b><small>{{ p.accroche }}</small></span>
-          <span :class="['etat', { prep: p.etat === 'en-cours' }]"><i aria-hidden="true"></i>{{ etat(p) }}</span>
-        </button>
-        <div v-for="b in donnees.bientot" :key="b.nom" class="cartouche vide">
-          <span class="fente" aria-hidden="true" style="opacity: 0.35"></span>
-          <span><b>{{ b.nom }}</b><small>{{ b.accroche }}</small></span>
-          <span class="etat prep"><i aria-hidden="true"></i>bientôt</span>
-        </div>
-      </aside>
-
       <nav class="touches" aria-label="Commandes rapides">
         <button class="touche" type="button" @click="vue.lancer('moi')">MOI</button>
         <button class="touche" type="button" @click="vue.lancer('projets')">PROJETS</button>
@@ -84,6 +71,22 @@ const etat = (p) => (p.etat === 'essai' ? 'essai' : p.version || 'en cours');
           <button class="touche rose" type="button" aria-label="Changer la couleur du boîtier" @click="vue.lancer('couleur')">◐</button>
         </span>
       </nav>
+
+      <aside class="baie" aria-labelledby="titre-baie">
+        <h2 id="titre-baie">Cartouches</h2>
+        <ul class="liste-cartouches">
+        <li v-for="p in donnees.projets" :key="p.dossier"><button class="cartouche" type="button" @click="vue && vue.lancer(p.commande)">
+          <span class="fente" aria-hidden="true"></span>
+          <span><b>{{ p.nom }}</b><small>{{ p.accroche }}</small></span>
+          <span :class="['etat', { prep: p.etat === 'en-cours' }]"><i aria-hidden="true"></i>{{ etat(p) }}</span>
+        </button></li>
+        <li v-for="b in donnees.bientot" :key="b.nom" class="cartouche vide">
+          <span class="fente" aria-hidden="true" style="opacity: 0.35"></span>
+          <span><b>{{ b.nom }}</b><small>{{ b.accroche }}</small></span>
+          <span class="etat prep"><i aria-hidden="true"></i>bientôt</span>
+        </li>
+        </ul>
+      </aside>
     </main>
 
     <footer class="pied">

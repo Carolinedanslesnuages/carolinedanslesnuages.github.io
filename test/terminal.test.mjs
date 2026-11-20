@@ -52,6 +52,13 @@ test('lire un fichier, un binaire, un dossier', () => {
   assert.match(texte(t.executer('cat projets')), /est un dossier/);
 });
 
+test('un fichier en anglais est marqué comme tel (RGAA 8.7)', () => {
+  const t = creerTerminal({ fichiers: { ...fichiers, 'projets/constance/LICENSE': { c: 'MIT License\nPermission is hereby granted', l: 'en', u: 'u' } }, donnees });
+  const r = t.executer('cat projets/constance/LICENSE');
+  assert.ok(r.lignes.filter((l) => l.classe === 'fichier').every((l) => l.langue === 'en'));
+  assert.ok(t.executer('cat projets/constance/README.md').lignes.filter((l) => l.classe === 'fichier').every((l) => l.langue === undefined));
+});
+
 test('chercher dans les noms et le contenu, sans accents, dans le dossier courant', () => {
   const t = terminal();
   const r = t.executer('chercher GITLEAKS');
