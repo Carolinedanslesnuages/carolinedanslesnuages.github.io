@@ -1,0 +1,74 @@
+{
+  "usernames": [
+    "Carolinedanslesnuages"
+  ],
+  "reposFilter": [
+    "halloweenify"
+  ],
+  "contributions": false,
+  "sidebarMode": "multi",
+  "vitepressConfig": {
+    "lang": "fr-FR",
+    "title": "carolinedanslesnuages",
+    "description": "Petits projets open source",
+    "themeConfig": {
+      "socialLinks": [
+        {
+          "icon": "github",
+          "link": "https://github.com/Carolinedanslesnuages"
+        }
+      ],
+      "outline": {
+        "level": [
+          2,
+          3
+        ],
+        "label": "Sur cette page"
+      },
+      "docFooter": {
+        "prev": "Page précédente",
+        "next": "Page suivante"
+      },
+      "darkModeSwitchLabel": "Apparence",
+      "sidebarMenuLabel": "Menu",
+      "returnToTopLabel": "Retour en haut",
+      "skipToContentLabel": "Aller au contenu",
+      "lightModeSwitchTitle": "Passer en thème clair",
+      "darkModeSwitchTitle": "Passer en thème sombre",
+      "notFound": {
+        "title": "Page introuvable",
+        "quote": "Cette page n'existe pas ou a été déplacée.",
+        "linkText": "Retour à l'accueil"
+      },
+      "search": {
+        "provider": "local",
+        "options": {
+          "translations": {
+            "button": {
+              "buttonText": "Rechercher",
+              "buttonAriaLabel": "Rechercher"
+            },
+            "modal": {
+              "noResultsText": "Aucun résultat pour",
+              "resetButtonTitle": "Effacer la recherche",
+              "footer": {
+                "selectText": "choisir",
+                "navigateText": "naviguer",
+                "closeText": "fermer"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "hero": {
+    "name": "carolinedanslesnuages",
+    "text": "Projets open source",
+    "tagline": "Petits projets simples et documentés.",
+    "image": {
+      "src": "https://avatars.githubusercontent.com/u/45307611?v=4",
+      "alt": "carolinedanslesnuages"
+    }
+  }
+}

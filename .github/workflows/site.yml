@@ -1,0 +1,35 @@
+name: Site
+
+on:
+  push:
+    branches:
+      - main
+  # Reconstruit chaque nuit pour reprendre la doc à jour des projets
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.docpress.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Construire et déployer le site
+        id: docpress
+        uses: this-is-tobi/docpress-action@v0.2.2
+        with:
+          config: ./docpress.config.json
+          deploy: true
