@@ -3,7 +3,8 @@
     "Carolinedanslesnuages"
   ],
   "reposFilter": [
-    "irene"
+    "irene",
+    "ada"
   ],
   "contributions": false,
   "sidebarMode": "multi",
@@ -60,6 +61,18 @@
           }
         }
       }
+    },
+    "markdown": {
+      "container": {
+        "tipLabel": "Astuce",
+        "warningLabel": "Attention",
+        "dangerLabel": "Danger",
+        "infoLabel": "Info",
+        "detailsLabel": "Détails",
+        "noteLabel": "Note",
+        "importantLabel": "Important",
+        "cautionLabel": "Prudence"
+      }
     }
   },
   "hero": {
@@ -72,6 +85,7 @@
     "./theme"
   ],
   "acronyms": [
+    "ADA",
     "ADR",
     "RGAA"
   ]
