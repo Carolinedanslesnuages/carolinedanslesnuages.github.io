@@ -1,0 +1,18 @@
+{
+  "name": "carolinedanslesnuages-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "collecter": "node scripts/collecter.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.10",
+    "vite": "8.3.5"
+  }
+}
