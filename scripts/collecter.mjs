@@ -41,6 +41,9 @@ async function collecterProjet(compte, p) {
   if (depot.private || depot.visibility !== 'public') throw new Error(`${compte}/${p.depot} n'est pas public : il ne sera jamais publié sur le site.`);
   if (depot.name !== p.depot) throw new Error(`${compte}/${p.depot} a été renommé en « ${depot.name} » : mettez à jour site.config.json.`);
   const version = await api(`/repos/${compte}/${p.depot}/releases/latest`);
+  // Derniers commits, pour la commande « log » (titre seulement).
+  const derniers = (await api(`/repos/${compte}/${p.depot}/commits?per_page=20`)) || [];
+  const commits = derniers.map((c) => ({ sha: c.sha.slice(0, 7), titre: c.commit.message.split('\n')[0], date: c.commit.author.date, url: c.html_url }));
   const branche = depot.default_branch;
   const arbre = await api(`/repos/${compte}/${p.depot}/git/trees/${encodeURIComponent(branche)}?recursive=1`);
   const dossier = p.dossier || p.depot.toLowerCase();
@@ -70,6 +73,7 @@ async function collecterProjet(compte, p) {
       version: version ? version.tag_name : null,
       etat: p.etat || (version ? 'en-ligne' : 'en-cours'),
       url: depot.html_url,
+      commits,
     },
     fichiers,
   };

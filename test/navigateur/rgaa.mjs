@@ -43,6 +43,12 @@ ok('13.5', (await p.textContent('.sortie')).includes('Deux petits nuages, dessin
 // 8.7 changement de langue
 await p.fill('#commande', 'cat ~/projets/constance/LICENSE'); await p.press('#commande', 'Enter'); await p.waitForTimeout(300);
 ok('8.7', (await p.locator('.sortie .ligne[lang=en]').count()) > 5, 'la licence en anglais est marquée lang="en"');
+// 6.1 liens explicites : les liens « voir » de log disent quel commit ils ouvrent
+await p.fill('#commande', 'log'); await p.press('#commande', 'Enter'); await p.waitForTimeout(300);
+const nomsLiens = await p.evaluate(() => [...document.querySelectorAll('.sortie a')].filter((a) => a.textContent.startsWith('voir')).map((a) => a.textContent));
+ok('6.1', nomsLiens.length > 0 && nomsLiens.every((t) => /voir : le commit « .+ » de .+ sur GitHub/.test(t)), `liens « voir » de log explicites (${nomsLiens.length})`);
+const titresAvecEmoji = await p.evaluate(() => [...document.querySelectorAll('.sortie .ligne')].some((l) => /\p{Extended_Pictographic}/u.test(l.textContent)));
+if (titresAvecEmoji) ok('log', (await p.locator('.sortie .emoji-rose').count()) > 0, 'log : les emoji des commits sont teintés en rose');
 // 3.3 contraste du champ
 const contraste = await p.evaluate(() => {
   const lum = (c) => { const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(Number).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };

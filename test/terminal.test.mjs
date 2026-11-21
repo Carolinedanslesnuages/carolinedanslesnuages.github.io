@@ -14,8 +14,8 @@ const donnees = {
   accroche: 'Bonjour.',
   presentation: ['carolinedanslesnuages', 'Curieuse.'],
   projets: [
-    { nom: 'Constance', commande: 'constance', dossier: 'constance', accroche: 'Règles', description: 'Les mêmes règles', version: 'v1.0.0', etat: 'en-ligne', url: 'https://github.com/x/constance' },
-    { nom: 'Irène', commande: 'irene', dossier: 'irene', accroche: 'Alerte', description: 'Extension', version: null, etat: 'essai', url: 'https://github.com/x/Irene' },
+    { nom: 'Constance', commande: 'constance', dossier: 'constance', accroche: 'Règles', description: 'Les mêmes règles', version: 'v1.0.0', etat: 'en-ligne', url: 'https://github.com/x/constance', commits: [{ sha: 'aaaaaaa', titre: 'feat: 🌸 ajouter X', date: '2026-11-20T10:00:00Z', url: 'https://github.com/x/constance/commit/a' }, { sha: 'bbbbbbb', titre: 'fix: corriger Y', date: '2026-11-18T10:00:00Z', url: 'https://github.com/x/constance/commit/b' }] },
+    { nom: 'Irène', commande: 'irene', dossier: 'irene', accroche: 'Alerte', description: 'Extension', version: null, etat: 'essai', url: 'https://github.com/x/Irene', commits: [{ sha: 'ccccccc', titre: 'docs: 📝 guide', date: '2026-11-19T10:00:00Z', url: 'https://github.com/x/Irene/commit/c' }] },
   ],
   bientot: [{ nom: 'Olympe', accroche: 'Skills' }],
 };
@@ -110,4 +110,20 @@ test('collecte : dossiers cachés et dépendances écartés', () => {
   assert.equal(garder('node_modules/x/index.js'), false);
   assert.equal(garder('a/dist/b.js'), false);
   assert.equal(garder('package-lock.json'), false);
+});
+
+test('log : derniers commits, du plus récent au plus ancien, emoji à part', () => {
+  const t = terminal();
+  const r = t.executer('log');
+  assert.equal(r.lignes.length, 4);
+  assert.match(r.annonce, /3 derniers commits de tous les projets/);
+  const premiere = r.lignes[1].morceaux;
+  assert.ok(premiere.some((m) => m.emoji === '🌸'));
+  assert.ok(premiere.some((m) => m.lien && /le commit « feat: 🌸 ajouter X » de Constance/.test(m.lien.precision)));
+  assert.ok(r.lignes[2].morceaux.some((m) => m.emoji === '📝'), 'Irène, 19/11, en deuxième');
+  const c = t.executer('log constance');
+  assert.equal(c.lignes.length, 3);
+  assert.match(c.annonce, /de Constance/);
+  assert.match(texte(t.executer('log personne')), /pas de projet « personne »/);
+  assert.match(texte(t.executer('log irène')), /Derniers commits de Irène/);
 });

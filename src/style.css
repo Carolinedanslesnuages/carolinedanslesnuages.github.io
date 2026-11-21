@@ -174,3 +174,6 @@ html { -webkit-text-size-adjust: 100%; }
 /* RGAA 10.11 : à 320 px, l écran et le champ rétrécissent au lieu de déborder du cadre */
 .ecran-cadre > * { min-width: 0; }
 .ecran { overflow-x: hidden; }
+
+/* Commande « log » : tous les emoji des commits teintés en rose (le texte reste lu tel quel) */
+.sortie .emoji-rose { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(285deg) brightness(1.05); text-shadow: none; }
