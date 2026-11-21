@@ -19,7 +19,7 @@ GitHub.
 
 ```sh
 npm ci
-GITHUB_TOKEN=$(gh auth token) npm run collecter   # récupère les projets
+GITHUB_TOKEN=$(gh auth token) npm run collect     # récupère les projets
 npm run dev                                        # http://localhost:5173
 npm test                                           # moteur du terminal
 ```
@@ -30,4 +30,4 @@ Le terminal reste utilisable au clavier et au lecteur d'écran : l'écran se lit
 annonce courte résume chaque commande, la touche Tab ne piège jamais le focus, et tout ce qui
 s'affiche est cliquable. La grille RGAA du site, critère par critère, est dans
 [`ACCESSIBILITE.md`](ACCESSIBILITE.md) ; ses vérifications automatiques tournent à chaque
-construction (`npm run test:navigateur`) et bloquent la publication si un critère casse.
+construction (`npm run test:browser`) et bloquent la publication si un critère casse.
