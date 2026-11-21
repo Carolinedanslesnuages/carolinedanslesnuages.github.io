@@ -46,6 +46,22 @@
       "accroche": "Mes gitmoji roses, rouges et violets"
     },
     {
+      "depot": "reine",
+      "accroche": "Mes réglages GitHub, partout pareils"
+    },
+    {
+      "depot": "pauline",
+      "accroche": "Les mêmes consignes pour mes agents"
+    },
+    {
+      "depot": "madeleine",
+      "accroche": "Garde-fou des dépendances d'agent"
+    },
+    {
+      "depot": "emmanuelle",
+      "accroche": "Le RGAA vérifié à chaque PR"
+    },
+    {
       "depot": "Irene",
       "nom": "Irène",
       "accroche": "Alerte anti-arnaques administratives",
