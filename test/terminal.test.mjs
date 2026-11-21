@@ -1,140 +1,151 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { creerTerminal } from '../src/terminal/moteur.js';
-import { resoudre } from '../src/terminal/fichiers.js';
-import { garder } from '../scripts/collecter.mjs';
+import { createTerminal, MOODS } from '../src/terminal/engine.js';
+import { resolvePath } from '../src/terminal/filesystem.js';
+import { keepPath } from '../scripts/collect.mjs';
 
-const fichiers = {
-  'projets/constance/README.md': { c: '# Constance\n\nGitleaks vérifié.\nLigne 4', u: 'https://github.com/x/constance/blob/main/README.md' },
-  'projets/constance/titre-pr/verifier.sh': { c: 'echo titre', u: 'u' },
-  'projets/constance/image.png': { u: 'https://github.com/x/constance/blob/main/image.png' },
-  'projets/irene/AGENTS.md': { c: "Irène protège contre l'arnaque.", u: 'u' },
+const FILES = {
+  'projets/constance/README.md': { content: '# Constance\n\nGitleaks vérifié.\nLigne 4', url: 'https://github.com/x/constance/blob/main/README.md' },
+  'projets/constance/titre-pr/check.sh': { content: 'echo titre', url: 'u' },
+  'projets/constance/image.png': { url: 'https://github.com/x/constance/blob/main/image.png' },
+  'projets/irene/AGENTS.md': { content: "Irène protège contre l'arnaque.", url: 'u' },
 };
-const donnees = {
-  accroche: 'Bonjour.',
+const SITE_DATA = {
+  tagline: 'Bonjour.',
   presentation: ['carolinedanslesnuages', 'Curieuse.'],
-  projets: [
-    { nom: 'Constance', commande: 'constance', dossier: 'constance', accroche: 'Règles', description: 'Les mêmes règles', version: 'v1.0.0', etat: 'en-ligne', url: 'https://github.com/x/constance', commits: [{ sha: 'aaaaaaa', titre: 'feat: 🌸 ajouter X', date: '2026-11-20T10:00:00Z', url: 'https://github.com/x/constance/commit/a' }, { sha: 'bbbbbbb', titre: 'fix: corriger Y', date: '2026-11-18T10:00:00Z', url: 'https://github.com/x/constance/commit/b' }] },
-    { nom: 'Irène', commande: 'irene', dossier: 'irene', accroche: 'Alerte', description: 'Extension', version: null, etat: 'essai', url: 'https://github.com/x/Irene', commits: [{ sha: 'ccccccc', titre: 'docs: 📝 guide', date: '2026-11-19T10:00:00Z', url: 'https://github.com/x/Irene/commit/c' }] },
+  projects: [
+    {
+      name: 'Constance', command: 'constance', folder: 'constance', tagline: 'Règles', description: 'Les mêmes règles', version: 'v1.0.0', status: 'released', url: 'https://github.com/x/constance',
+      commits: [
+        { sha: 'aaaaaaa', title: 'feat: 🌸 ajouter X', date: '2026-11-20T10:00:00Z', url: 'https://github.com/x/constance/commit/a' },
+        { sha: 'bbbbbbb', title: 'fix: corriger Y', date: '2026-11-18T10:00:00Z', url: 'https://github.com/x/constance/commit/b' },
+      ],
+    },
+    {
+      name: 'Irène', command: 'irene', folder: 'irene', tagline: 'Alerte', description: 'Extension', version: null, status: 'trial', url: 'https://github.com/x/Irene',
+      commits: [{ sha: 'ccccccc', title: 'docs: 📝 guide', date: '2026-11-19T10:00:00Z', url: 'https://github.com/x/Irene/commit/c' }],
+    },
   ],
-  bientot: [{ nom: 'Olympe', accroche: 'Skills' }],
+  upcoming: [{ name: 'Olympe', tagline: 'Skills' }],
 };
-const terminal = () => creerTerminal({ fichiers, donnees });
-const texte = (r) => r.lignes.map((l) => l.morceaux.map((m) => (typeof m === 'string' ? m : JSON.stringify(m))).join('')).join('\n');
+const newTerminal = () => createTerminal({ files: FILES, data: SITE_DATA });
+const screenText = (result) => result.lines.map((line) => line.parts.map((part) => (typeof part === 'string' ? part : JSON.stringify(part))).join('')).join('\n');
 
 test('chemins : relatifs, .., ~, /', () => {
-  assert.equal(resoudre('projets/a', '..'), 'projets');
-  assert.equal(resoudre('projets/a', '~'), '');
-  assert.equal(resoudre('projets/a', '/projets'), 'projets');
-  assert.equal(resoudre('projets', 'a/b'), 'projets/a/b');
-  assert.equal(resoudre('projets', ''), 'projets');
+  assert.equal(resolvePath('projets/a', '..'), 'projets');
+  assert.equal(resolvePath('projets/a', '~'), '');
+  assert.equal(resolvePath('projets/a', '/projets'), 'projets');
+  assert.equal(resolvePath('projets', 'a/b'), 'projets/a/b');
+  assert.equal(resolvePath('projets', ''), 'projets');
 });
 
 test('naviguer : cd, ls, pwd, invite', () => {
-  const t = terminal();
-  const r = t.executer('cd projets');
-  assert.equal(t.invite(), '~/projets');
-  assert.match(r.annonce, /2 éléments dans ~\/projets : constance \(dossier\), irene \(dossier\)/);
-  t.executer('cd constance');
-  assert.equal(t.executer('pwd').lignes[0].morceaux[0], '~/projets/constance');
-  assert.match(t.executer('cd ..').annonce, /~\/projets/);
-  assert.match(texte(t.executer('cd nulle-part')), /aucun dossier/);
-  assert.match(texte(t.executer('cd ~/projets/constance/README.md')), /est un fichier/);
+  const terminal = newTerminal();
+  const result = terminal.execute('cd projets');
+  assert.equal(terminal.prompt(), '~/projets');
+  assert.match(result.announcement, /2 éléments dans ~\/projets : constance \(dossier\), irene \(dossier\)/);
+  terminal.execute('cd constance');
+  assert.equal(terminal.execute('pwd').lines[0].parts[0], '~/projets/constance');
+  assert.match(terminal.execute('cd ..').announcement, /~\/projets/);
+  assert.match(screenText(terminal.execute('cd nulle-part')), /aucun dossier/);
+  assert.match(screenText(terminal.execute('cd ~/projets/constance/README.md')), /est un fichier/);
 });
 
 test('lire un fichier, un binaire, un dossier', () => {
-  const t = terminal();
-  const r = t.executer('cat projets/constance/README.md');
-  assert.equal(r.instantane, true);
-  assert.match(r.annonce, /Fichier ~\/projets\/constance\/README\.md affiché, 4 lignes/);
-  assert.match(texte(r), /Gitleaks vérifié/);
-  assert.match(texte(t.executer('cat projets/constance/image.png')), /binaire/);
-  assert.match(texte(t.executer('cat projets')), /est un dossier/);
+  const terminal = newTerminal();
+  const result = terminal.execute('cat projets/constance/README.md');
+  assert.equal(result.instant, true);
+  assert.match(result.announcement, /Fichier ~\/projets\/constance\/README\.md affiché, 4 lignes/);
+  assert.match(screenText(result), /Gitleaks vérifié/);
+  assert.match(screenText(terminal.execute('cat projets/constance/image.png')), /binaire/);
+  assert.match(screenText(terminal.execute('cat projets')), /est un dossier/);
 });
 
 test('un fichier en anglais est marqué comme tel (RGAA 8.7)', () => {
-  const t = creerTerminal({ fichiers: { ...fichiers, 'projets/constance/LICENSE': { c: 'MIT License\nPermission is hereby granted', l: 'en', u: 'u' } }, donnees });
-  const r = t.executer('cat projets/constance/LICENSE');
-  assert.ok(r.lignes.filter((l) => l.classe === 'fichier').every((l) => l.langue === 'en'));
-  assert.ok(t.executer('cat projets/constance/README.md').lignes.filter((l) => l.classe === 'fichier').every((l) => l.langue === undefined));
+  const files = { ...FILES, 'projets/constance/LICENSE': { content: 'MIT License\nPermission is hereby granted', lang: 'en', url: 'u' } };
+  const terminal = createTerminal({ files, data: SITE_DATA });
+  const fileLines = (command) => terminal.execute(command).lines.filter((line) => line.style === 'file-line');
+  assert.ok(fileLines('cat projets/constance/LICENSE').every((line) => line.lang === 'en'));
+  assert.ok(fileLines('cat projets/constance/README.md').every((line) => line.lang === undefined));
 });
 
 test('chercher dans les noms et le contenu, sans accents, dans le dossier courant', () => {
-  const t = terminal();
-  const r = t.executer('chercher GITLEAKS');
-  assert.match(r.annonce, /2 fichier\(s\)/, 'README.md et lisez-moi.txt (qui donne cet exemple)');
-  assert.ok(r.lignes.some((l) => l.morceaux.some((m) => m.marque === 'Gitleaks')));
-  assert.match(t.executer('chercher arnaqué').annonce, /1 fichier/);
-  t.executer('cd projets/irene');
-  assert.match(texte(t.executer('chercher gitleaks')), /Rien trouvé .* dans ~\/projets\/irene/);
+  const terminal = newTerminal();
+  const result = terminal.execute('chercher GITLEAKS');
+  assert.match(result.announcement, /2 fichier\(s\)/, 'README.md et lisez-moi.txt (qui donne cet exemple)');
+  assert.ok(result.lines.some((line) => line.parts.some((part) => part.highlight === 'Gitleaks')));
+  assert.match(terminal.execute('chercher arnaqué').announcement, /1 fichier/);
+  terminal.execute('cd projets/irene');
+  assert.match(screenText(terminal.execute('chercher gitleaks')), /Rien trouvé .* dans ~\/projets\/irene/);
 });
 
 test('projets et commandes de chaque projet', () => {
-  const t = terminal();
-  const p = texte(t.executer('projets'));
-  assert.match(p, /constance\s+v1\.0\.0/);
-  assert.match(p, /irene\s+projet d'essai/);
-  assert.match(p, /olympe\s+en préparation/);
-  assert.match(texte(t.executer('irène')), /Extension/);
-  assert.match(texte(t.executer('constance')), /github\.com\/x\/constance/);
+  const terminal = newTerminal();
+  const projectList = screenText(terminal.execute('projets'));
+  assert.match(projectList, /constance\s+v1\.0\.0/);
+  assert.match(projectList, /irene\s+projet d'essai/);
+  assert.match(projectList, /olympe\s+en préparation/);
+  assert.match(screenText(terminal.execute('irène')), /Extension/);
+  assert.match(screenText(terminal.execute('constance')), /github\.com\/x\/constance/);
 });
 
 test('effacer, couleur, inconnue, vide', () => {
-  const t = terminal();
-  assert.equal(t.executer('effacer').effacer, true);
-  assert.equal(t.executer('couleur').couleur, true);
-  assert.match(texte(t.executer('nimporte')), /Commande inconnue/);
-  assert.equal(t.executer('   '), null);
+  const terminal = newTerminal();
+  assert.equal(terminal.execute('effacer').clearScreen, true);
+  assert.equal(terminal.execute('couleur').changeColor, true);
+  assert.match(screenText(terminal.execute('nimporte')), /Commande inconnue/);
+  assert.equal(terminal.execute('   '), null);
 });
 
 test('complétion : commande, chemin unique, plusieurs propositions, rien', () => {
-  const t = terminal();
-  assert.deepEqual(t.completer('chE'), { valeur: 'chercher ' });
-  assert.deepEqual(t.completer('cd pro'), { valeur: 'cd projets/' });
-  assert.match(t.completer('cd projets/').annonce, /2 possibilités/);
-  assert.equal(t.completer('cd zzz'), null);
-  assert.match(t.completer('cd projets/constance/').annonce, /3 possibilités/);
-  assert.equal(t.completer('xyz'), null);
+  const terminal = newTerminal();
+  assert.deepEqual(terminal.complete('chE'), { value: 'chercher ' });
+  assert.deepEqual(terminal.complete('cd pro'), { value: 'cd projets/' });
+  assert.match(terminal.complete('cd projets/').announcement, /2 possibilités/);
+  assert.equal(terminal.complete('cd zzz'), null);
+  assert.match(terminal.complete('cd projets/constance/').announcement, /3 possibilités/);
+  assert.equal(terminal.complete('xyz'), null);
 });
 
 test('les annonces restent courtes', () => {
-  const t = terminal();
-  for (const cmd of ['aide', 'projets', 'tree', 'cat projets/constance/README.md', 'chercher e']) assert.ok(t.executer(cmd).annonce.length <= 400, cmd);
+  const terminal = newTerminal();
+  for (const command of ['aide', 'projets', 'tree', 'cat projets/constance/README.md', 'chercher e']) {
+    assert.ok(terminal.execute(command).announcement.length <= 400, command);
+  }
 });
 
 test('collecte : dossiers cachés et dépendances écartés', () => {
-  assert.equal(garder('src/a.ts'), true);
-  assert.equal(garder('.github/workflows/ci.yml'), true);
-  assert.equal(garder('.claude/skills/x/SKILL.md'), false);
-  assert.equal(garder('.agents/x'), false);
-  assert.equal(garder('node_modules/x/index.js'), false);
-  assert.equal(garder('a/dist/b.js'), false);
-  assert.equal(garder('package-lock.json'), false);
+  assert.equal(keepPath('src/a.ts'), true);
+  assert.equal(keepPath('.github/workflows/ci.yml'), true);
+  assert.equal(keepPath('.claude/skills/x/SKILL.md'), false);
+  assert.equal(keepPath('.agents/x'), false);
+  assert.equal(keepPath('node_modules/x/index.js'), false);
+  assert.equal(keepPath('a/dist/b.js'), false);
+  assert.equal(keepPath('package-lock.json'), false);
 });
 
 test('log : derniers commits, du plus récent au plus ancien, emoji à part', () => {
-  const t = terminal();
-  const r = t.executer('log');
-  assert.equal(r.lignes.length, 4);
-  assert.match(r.annonce, /3 derniers commits de tous les projets/);
-  const premiere = r.lignes[1].morceaux;
-  assert.ok(premiere.some((m) => m.emoji === '🌸'));
-  assert.ok(premiere.some((m) => m.lien && /le commit « feat: 🌸 ajouter X » de Constance/.test(m.lien.precision)));
-  assert.ok(r.lignes[2].morceaux.some((m) => m.emoji === '📝'), 'Irène, 19/11, en deuxième');
-  const c = t.executer('log constance');
-  assert.equal(c.lignes.length, 3);
-  assert.match(c.annonce, /de Constance/);
-  assert.match(texte(t.executer('log personne')), /pas de projet « personne »/);
-  assert.match(texte(t.executer('log irène')), /Derniers commits de Irène/);
+  const terminal = newTerminal();
+  const result = terminal.execute('log');
+  assert.equal(result.lines.length, 4);
+  assert.match(result.announcement, /3 derniers commits de tous les projets/);
+  const newest = result.lines[1].parts;
+  assert.ok(newest.some((part) => part.emoji === '🌸'));
+  assert.ok(newest.some((part) => part.link && /le commit « feat: 🌸 ajouter X » de Constance/.test(part.link.detail)));
+  assert.ok(result.lines[2].parts.some((part) => part.emoji === '📝'), 'Irène, 19/11, en deuxième');
+  const constanceLog = terminal.execute('log constance');
+  assert.equal(constanceLog.lines.length, 3);
+  assert.match(constanceLog.announcement, /de Constance/);
+  assert.match(screenText(terminal.execute('log personne')), /pas de projet « personne »/);
+  assert.match(screenText(terminal.execute('log irène')), /Derniers commits de Irène/);
 });
 
-test('humeur : une humeur choisie au hasard, annoncée en entier, absente de l\'aide', async () => {
-  const { HUMEURS } = await import('../src/terminal/moteur.js');
-  const t = creerTerminal({ fichiers, donnees, hasard: () => 0.2 });
-  const r = t.executer('humeur');
-  const h = r.lignes[1].morceaux[0].humeur;
-  assert.equal(h.emoji, HUMEURS[2][0]);
-  assert.equal(h.suite.length, HUMEURS.length);
-  assert.match(r.annonce, /^Humeur du moment : loufoque\./);
-  assert.doesNotMatch(texte(t.executer('aide')), /humeur/);
+test('humeur : une humeur choisie au hasard, annoncée en entier, absente de l\'aide', () => {
+  const terminal = createTerminal({ files: FILES, data: SITE_DATA, random: () => 0.2 });
+  const result = terminal.execute('humeur');
+  const mood = result.lines[1].parts[0].mood;
+  assert.equal(mood.emoji, MOODS[2][0]);
+  assert.equal(mood.sequence.length, MOODS.length);
+  assert.match(result.announcement, /^Humeur du moment : loufoque\./);
+  assert.doesNotMatch(screenText(terminal.execute('aide')), /humeur/);
 });

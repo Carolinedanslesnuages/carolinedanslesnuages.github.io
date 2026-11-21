@@ -9,8 +9,8 @@ vérifications automatiques dans un vrai navigateur (Chromium) et sur une relect
 n'est pas un audit réalisé par une personne avec des technologies d'assistance (NVDA, VoiceOver) :
 ce test-là reste à faire.
 
-Vérifications rejouées à chaque construction du site : `test/navigateur/rgaa.mjs` (critères
-marqués 🤖) et `test/navigateur/parcours.mjs`. Si l'une échoue, le site n'est pas publié.
+Vérifications rejouées à chaque construction du site : `test/browser/rgaa.mjs` (critères
+marqués 🤖) et `test/browser/journey.mjs`. Si l'une échoue, le site n'est pas publié.
 
 Légende : **C** conforme · **NA** non applicable · 🤖 vérifié automatiquement à chaque construction.
 
