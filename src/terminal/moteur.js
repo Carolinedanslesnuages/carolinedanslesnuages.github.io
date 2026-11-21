@@ -3,6 +3,7 @@
  * pour les lecteurs d'écran (jamais tout le contenu). Fonctions pures, sans DOM.
  *
  * Une ligne : { classe?, morceaux: [texte | {entree} | {lien} | {marque} | {grille} | {code} | {deco}] }
+ * {emoji} : un emoji affiché teinté en rose (commande « log ») ; il reste lu normalement.
  * {deco} : caractères purement visuels (traits d'arborescence, pointillés, puces, dessins),
  * ignorés des lecteurs d'écran (RGAA 13.5 : pas de contenu cryptique sans alternative).
  */
@@ -113,6 +114,39 @@ export function creerTerminal({ fichiers, donnees }) {
     return { lignes, annonce: `${total} fichier(s) trouvé(s) pour « ${arg} »${ou}. Résultats affichés à l'écran.` };
   }
 
+  const segmenteur = new Intl.Segmenter('fr', { granularity: 'grapheme' });
+  /** Un titre de commit en morceaux : chaque emoji à part, pour être teinté en rose. */
+  function morceauxDuTitre(titre) {
+    const morceaux = [];
+    for (const { segment } of segmenteur.segment(titre)) {
+      if (/\p{Extended_Pictographic}/u.test(segment)) morceaux.push({ emoji: segment });
+      else if (typeof morceaux[morceaux.length - 1] === 'string') morceaux[morceaux.length - 1] += segment;
+      else morceaux.push(segment);
+    }
+    return morceaux;
+  }
+
+  function log(arg) {
+    const cle = sansAccent((arg || '').trim());
+    const choisis = cle ? projets.filter((p) => p.commande === cle || sansAccent(p.nom) === cle) : projets;
+    if (cle && !choisis.length) return { lignes: [L(`log : pas de projet « ${arg} ». Projets : ${projets.map((p) => p.commande).join(', ')}.`, 'att')] };
+    const commits = choisis
+      .flatMap((p) => (p.commits || []).map((c) => ({ ...c, projet: p })))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 15);
+    if (!commits.length) return { lignes: [L('Aucun commit à afficher.', 'moi')] };
+    const largeur = Math.max(...commits.map((c) => c.projet.commande.length));
+    const lignes = [L(cle ? `Derniers commits de ${choisis[0].nom} :` : 'Derniers commits de tous les projets :', 'titre')];
+    for (const c of commits) {
+      const jour = new Date(c.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+      lignes.push({
+        classe: 'fichier',
+        morceaux: [`${jour}  `, ...(cle ? [] : [`${c.projet.commande.padEnd(largeur)}  `]), ...morceauxDuTitre(c.titre), '  ', D('→ '), { lien: { url: c.url, libelle: 'voir', precision: `le commit « ${c.titre} » de ${c.projet.nom} sur GitHub` } }],
+      });
+    }
+    return { lignes, annonce: `${commits.length} derniers commits ${cle ? 'de ' + choisis[0].nom : 'de tous les projets'}, affichés à l'écran.` };
+  }
+
   function resumeProjet(p) {
     const etat = p.etat === 'essai' ? "projet d'essai" : p.version || 'en cours';
     return {
@@ -135,6 +169,7 @@ export function creerTerminal({ fichiers, donnees }) {
         L("  tree [dossier]     l'arborescence"),
         L('  chercher <mots>    dans les noms et le contenu des fichiers'),
         L(`  ${projets.map((p) => p.commande).join(' · ')}`),
+        L('  log [projet]       les derniers commits, emoji en rose'),
         L('  pwd · moi · projets · couleur · effacer'),
         L('Tab complète les noms. ↑ ↓ rappellent les commandes. Tout est cliquable.', 'moi'),
       ],
@@ -153,6 +188,7 @@ export function creerTerminal({ fichiers, donnees }) {
     cat,
     tree,
     chercher,
+    log,
     pwd: () => ({ lignes: [L(affichable(ici))] }),
     nuages: () => ({
       lignes: [
@@ -179,7 +215,7 @@ export function creerTerminal({ fichiers, donnees }) {
     const r = fonction ? fonction(reste.join(' ')) : { lignes: [L(`Commande inconnue : ${nom}. Tapez « aide ».`, 'att')] };
     const echo = L(`nuages:${affichable(ici)}$ ${propre}`, 'moi');
     const annonce = r.annonce || r.lignes.map(texteDe).join(' ').slice(0, 240);
-    return { ...r, echo, annonce, instantane: ['cat', 'less', 'more', 'tree', 'chercher', 'grep', 'find'].includes(cle) };
+    return { ...r, echo, annonce, instantane: ['cat', 'less', 'more', 'tree', 'chercher', 'grep', 'find', 'log'].includes(cle) };
   }
 
   /** Complétion de la saisie : renvoie la nouvelle valeur, ou des propositions, ou null. */

@@ -9,7 +9,8 @@ const nom = (e) => e.libelle + (e.dossier ? '/' : '');
   <template v-if="typeof m === 'string'">{{ m }}</template>
   <span v-else-if="m.deco !== undefined" aria-hidden="true">{{ m.deco }}</span>
   <button v-else-if="m.entree" type="button" :class="['entree', { dossier: m.entree.dossier }]" @click="emit('ouvrir', m.entree)">{{ nom(m.entree) }}</button>
-  <a v-else-if="m.lien" :href="m.lien.url" target="_blank" rel="noopener">{{ m.lien.libelle }}<span class="vh"> (nouvel onglet)</span></a>
+  <span v-else-if="m.emoji" class="emoji-rose">{{ m.emoji }}</span>
+  <a v-else-if="m.lien" :href="m.lien.url" target="_blank" rel="noopener">{{ m.lien.libelle }}<span class="vh">{{ m.lien.precision ? ' : ' + m.lien.precision : '' }} (nouvel onglet)</span></a>
   <mark v-else-if="m.marque !== undefined">{{ m.marque }}</mark>
   <code v-else-if="m.code !== undefined">{{ m.code }}</code>
   <ul v-else-if="m.grille" class="grille">
