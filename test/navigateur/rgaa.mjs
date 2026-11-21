@@ -78,6 +78,30 @@ for (const [crit, t] of [['10.11', { width: 320, height: 640 }], ['10.4', { widt
   ok(crit, sorties.length === 0, `${t.width} px : rien ne déborde du cadre de l'écran${sorties.length ? ' (' + sorties.join(', ') + ')' : ''}`);
   await p.close();
 }
+// 13.8 contenu en mouvement : l'animation de « humeur » s'arrête seule en moins de 5 s,
+// et n'a pas lieu quand le système demande moins d'animations.
+{
+  const anime = await b.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'no-preference' });
+  await anime.goto(URL); await anime.waitForSelector('text=Terminal prêt', { state: 'attached', timeout: 15000 });
+  await anime.fill('#commande', 'humeur'); await anime.press('#commande', 'Enter');
+  const vus = new Set();
+  const debut = Date.now();
+  while (Date.now() - debut < 6000) {
+    const e = await anime.locator('.humeur-emoji').last().textContent().catch(() => null);
+    if (e) vus.add(e);
+    if (await anime.locator('.humeur-texte').count()) break;
+    await anime.waitForTimeout(100);
+  }
+  const duree = Date.now() - debut;
+  ok('13.8', vus.size > 2 && duree < 5000 && (await anime.locator('.humeur-emoji.agite').count()) === 0, `humeur : ${vus.size} expressions, animation arrêtée seule en ${(duree / 1000).toFixed(1)} s`);
+  await anime.close();
+  const calme = await b.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+  await calme.goto(URL); await calme.waitForSelector('text=Terminal prêt', { state: 'attached', timeout: 15000 });
+  await calme.fill('#commande', 'humeur'); await calme.press('#commande', 'Enter'); await calme.waitForTimeout(150);
+  ok('13.8', (await calme.locator('.humeur-texte').count()) === 1 && (await calme.locator('.humeur-emoji.agite').count()) === 0, 'humeur : aucune animation quand le système en demande moins');
+  ok('7.5', /^Humeur du moment : /.test(await calme.textContent('[role=status]')), "humeur : l'humeur finale est annoncée");
+  await calme.close();
+}
 // 10.12 espacement du texte redéfini
 p = await ouvrir({ width: 1280, height: 900 });
 await p.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: .12em !important; word-spacing: .16em !important; } p { margin-bottom: 2em !important; }' });

@@ -194,3 +194,17 @@ html { -webkit-text-size-adjust: 100%; }
 @container (max-width: 250px) {
   .cartouche .etat { position: static; grid-column: 2; justify-self: start; margin-top: -4px; }
 }
+
+/* Easter egg « humeur » : l'emoji part dans tous les sens, puis se pose */
+.humeur { display: inline-flex; align-items: center; gap: 14px; padding: 6px 0; }
+.humeur-emoji { display: inline-block; font: 48px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; text-shadow: none; }
+.humeur-emoji.agite { animation: tous-les-sens 0.34s steps(1) infinite; }
+@keyframes tous-les-sens {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  20% { transform: translate(-6px, 3px) rotate(-14deg) scale(1.08); }
+  40% { transform: translate(7px, -4px) rotate(11deg) scale(0.94); }
+  60% { transform: translate(-3px, -6px) rotate(-6deg) scale(1.12); }
+  80% { transform: translate(5px, 5px) rotate(16deg) scale(0.98); }
+}
+.humeur-texte b { color: #fff; }
+@media (prefers-reduced-motion: reduce) { .humeur-emoji.agite { animation: none; } }

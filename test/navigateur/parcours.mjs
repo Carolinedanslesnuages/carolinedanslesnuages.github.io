@@ -10,7 +10,15 @@ const erreurs = [];
 for (const [nom, taille] of [['ordinateur', { width: 1280, height: 900 }], ['telephone', { width: 390, height: 844 }]]) {
   const page = await navigateur.newPage({ viewport: taille, reducedMotion: 'reduce' });
   page.on('pageerror', (e) => erreurs.push(`${nom} : ${e.message}`));
-  page.on('console', (m) => m.type() === 'error' && erreurs.push(`${nom} console : ${m.text()}`));
+  // Une police Google qui ne se charge pas (réseau) n'est pas une erreur du site : on l'ignore,
+  // et seulement elle. Toute autre ressource en échec reste une erreur.
+  let policesEnEchec = 0;
+  page.on('requestfailed', (r) => { if (/fonts\.(googleapis|gstatic)\.com/.test(r.url())) policesEnEchec++; else erreurs.push(`${nom} ressource : ${r.url()}`); });
+  page.on('console', (m) => {
+    if (m.type() !== 'error') return;
+    if (/Failed to load resource/.test(m.text()) && policesEnEchec > 0) { policesEnEchec--; return; }
+    erreurs.push(`${nom} console : ${m.text()}`);
+  });
   await page.goto(URL);
   await page.waitForSelector('text=Terminal prêt', { state: 'attached', timeout: 15000 });
   ok(true, `${nom} : démarrage, annonce « Terminal prêt »`);
