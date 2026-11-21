@@ -127,3 +127,14 @@ test('log : derniers commits, du plus récent au plus ancien, emoji à part', ()
   assert.match(texte(t.executer('log personne')), /pas de projet « personne »/);
   assert.match(texte(t.executer('log irène')), /Derniers commits de Irène/);
 });
+
+test('humeur : une humeur choisie au hasard, annoncée en entier, absente de l\'aide', async () => {
+  const { HUMEURS } = await import('../src/terminal/moteur.js');
+  const t = creerTerminal({ fichiers, donnees, hasard: () => 0.2 });
+  const r = t.executer('humeur');
+  const h = r.lignes[1].morceaux[0].humeur;
+  assert.equal(h.emoji, HUMEURS[2][0]);
+  assert.equal(h.suite.length, HUMEURS.length);
+  assert.match(r.annonce, /^Humeur du moment : loufoque\./);
+  assert.doesNotMatch(texte(t.executer('aide')), /humeur/);
+});

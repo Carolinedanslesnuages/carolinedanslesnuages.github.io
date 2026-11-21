@@ -18,7 +18,23 @@ const texteDe = (ligne) =>
     .map((m) => (typeof m === 'string' ? m : m.deco !== undefined ? '' : m.entree ? m.entree.libelle + (m.entree.dossier ? '/' : '') : m.lien ? m.lien.libelle : m.marque ?? m.code ?? (m.grille ? m.grille.map((e) => e.entree.libelle).join(', ') : '')))
     .join('');
 
-export function creerTerminal({ fichiers, donnees }) {
+/** Les humeurs de l'easter egg « humeur » : un emoji et ce qu'il dit. */
+export const HUMEURS = [
+  ['😄', 'radieuse', 'tous les tests sont verts'],
+  ['😴', 'endormie', 'café à recharger d\'urgence'],
+  ['🤪', 'loufoque', 'un commit qui part dans tous les sens'],
+  ['😤', 'déterminée', 'ce bug ne passera pas la nuit'],
+  ['🥰', 'amoureuse du code', 'refactoriser, c\'est se faire du bien'],
+  ['😵‍💫', 'étourdie', 'trop d\'onglets ouverts'],
+  ['🫨', 'secouée', 'la CI vient de virer au rouge'],
+  ['🤓', 'studieuse', 'lecture du RGAA en cours'],
+  ['😎', 'sereine', 'la PR est fusionnée'],
+  ['🥳', 'en fête', 'une nouvelle version vient de sortir'],
+  ['🧐', 'curieuse', 'qu\'y a-t-il dans ce dossier ?'],
+  ['😱', 'paniquée', 'git push --force… sur main ?'],
+];
+
+export function creerTerminal({ fichiers, donnees, hasard = Math.random }) {
   const fs = creerFS(fichiers, donnees);
   let ici = '';
   const projets = donnees.projets || [];
@@ -200,6 +216,13 @@ export function creerTerminal({ fichiers, donnees }) {
       ],
     }),
     sudo: () => ({ lignes: [L('Pas de sudo ici. Juste du thé et des tests verts.', 'att')] }),
+    humeur: () => {
+      const [emoji, nom, detail] = HUMEURS[Math.floor(hasard() * HUMEURS.length)];
+      return {
+        lignes: [L('Humeur du moment…', 'titre'), { morceaux: [{ humeur: { emoji, nom, detail, suite: HUMEURS.map((h) => h[0]) } }] }],
+        annonce: `Humeur du moment : ${nom}. ${detail}.`,
+      };
+    },
     effacer: () => ({ lignes: [], effacer: true, annonce: 'Écran effacé.' }),
     couleur: () => ({ lignes: [], couleur: true }),
   };

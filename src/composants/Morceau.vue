@@ -1,5 +1,6 @@
 <script setup>
 /** Un morceau d'une ligne du terminal : texte, entrée cliquable, lien, mot surligné, grille. */
+import Humeur from './Humeur.vue';
 defineProps({ m: { type: [String, Object], required: true } });
 const emit = defineEmits(['ouvrir']);
 const nom = (e) => e.libelle + (e.dossier ? '/' : '');
@@ -10,6 +11,7 @@ const nom = (e) => e.libelle + (e.dossier ? '/' : '');
   <span v-else-if="m.deco !== undefined" aria-hidden="true">{{ m.deco }}</span>
   <button v-else-if="m.entree" type="button" :class="['entree', { dossier: m.entree.dossier }]" @click="emit('ouvrir', m.entree)">{{ nom(m.entree) }}</button>
   <span v-else-if="m.emoji" class="emoji-rose">{{ m.emoji }}</span>
+  <Humeur v-else-if="m.humeur" :humeur="m.humeur" />
   <a v-else-if="m.lien" :href="m.lien.url" target="_blank" rel="noopener">{{ m.lien.libelle }}<span class="vh">{{ m.lien.precision ? ' : ' + m.lien.precision : '' }} (nouvel onglet)</span></a>
   <mark v-else-if="m.marque !== undefined">{{ m.marque }}</mark>
   <code v-else-if="m.code !== undefined">{{ m.code }}</code>
