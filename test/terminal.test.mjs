@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerminal, MOODS } from '../src/terminal/engine.js';
 import { resolvePath } from '../src/terminal/filesystem.js';
-import { keepPath, namesakeOf, desktopFolders } from '../scripts/collect.mjs';
+import { keepPath, namesakeOf, desktopFolders, isHidden } from '../scripts/collect.mjs';
 
 const FILES = {
   'projets/constance/README.md': { content: '# Constance\n\nGitleaks vérifié.\nLigne 4', url: 'https://github.com/x/constance/blob/main/README.md' },
@@ -143,6 +143,15 @@ test('collecte : dossiers du bureau, et un dépôt inconnu arrête tout', () => 
   assert.deepEqual(desktopFolders([{ nom: 'Pull requests', accroche: 'Relire', projets: ['constance', 'Irene'] }], projects, configured), [{ name: 'Pull requests', tagline: 'Relire', projects: ['constance', 'irene'] }]);
   assert.throws(() => desktopFolders([{ nom: 'Sites', projets: ['inconnu'] }], projects, configured), /cite « inconnu »/);
   assert.deepEqual(desktopFolders(undefined, projects, configured), []);
+});
+
+test('collecte : fichiers et dossiers masqués par projet', () => {
+  assert.equal(isHidden('revues/story-2.md', ['revues', 'ada.json']), true);
+  assert.equal(isHidden('revues', ['revues/']), true);
+  assert.equal(isHidden('ada.json', ['revues', 'ada.json']), true);
+  assert.equal(isHidden('revues-bis/a.md', ['revues']), false, 'même début de nom, autre dossier');
+  assert.equal(isHidden('src/ada.json', ['ada.json']), false, 'seulement à la racine');
+  assert.equal(isHidden('README.md'), false);
 });
 
 test('collecte : dossiers cachés et dépendances écartés', () => {

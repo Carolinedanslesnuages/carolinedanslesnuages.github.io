@@ -12,6 +12,7 @@
  * { pendingFile } for the screen to fetch it, then fileLines() turns the text into lines.
  */
 import { createFileSystem, displayPath, resolvePath, withoutAccents } from './filesystem.js';
+import { statusLabel as projectStatus } from '../data/project-status.js';
 
 const textLine = (text, style) => ({ style, parts: [text] });
 const decoration = (characters) => ({ decoration: characters });
@@ -78,7 +79,7 @@ function highlightParts(text, term) {
   return parts;
 }
 
-const statusLabel = (project) => (project.status === 'trial' ? "projet d'essai" : project.version || 'en cours');
+const statusLabel = (project) => projectStatus(project, { trialLabel: "projet d'essai" });
 
 export function createTerminal({ files, data, random = Math.random }) {
   const fileSystem = createFileSystem(files, data);
@@ -227,11 +228,11 @@ export function createTerminal({ files, data, random = Math.random }) {
   function projectList() {
     const projectRow = (project) => ({
       style: project.status === 'in-progress' ? 'warning' : 'success',
-      parts: [decoration(`  [${project.status === 'in-progress' ? '◌' : '●'}] `), `${project.command.padEnd(11)} ${statusLabel(project).padEnd(15)} ${project.tagline}`],
+      parts: [decoration(`  [${project.status === 'in-progress' ? '◌' : '●'}] `), `${project.command.padEnd(11)} ${statusLabel(project).padEnd(26)} ${project.tagline}`],
     });
     const upcomingRow = (upcoming) => ({
       style: 'warning',
-      parts: [decoration('  [◌] '), `${upcoming.name.toLowerCase().padEnd(11)} ${'en préparation'.padEnd(15)} ${upcoming.tagline}`],
+      parts: [decoration('  [◌] '), `${upcoming.name.toLowerCase().padEnd(11)} ${'en préparation'.padEnd(26)} ${upcoming.tagline}`],
     });
     return {
       lines: [

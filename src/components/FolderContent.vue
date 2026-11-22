@@ -1,12 +1,12 @@
 <script setup>
 /** The content of a desktop folder: its projects, with their tagline. A click opens the explorer. */
+import { statusLabel } from '../data/project-status.js';
 const props = defineProps({
   folder: { type: Object, default: null },
   projects: { type: Array, required: true },
 });
 const emit = defineEmits(['open']);
 const TILE_COLORS = ['#ffb1df', '#6ff2c4', '#ffd36e', '#d8c6f3'];
-const statusLabel = (project) => (project.status === 'trial' ? 'essai' : project.version || 'en cours');
 </script>
 
 <template>

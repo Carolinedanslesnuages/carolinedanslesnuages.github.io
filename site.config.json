@@ -22,6 +22,15 @@
       "accroche": "Mon bullet journal dans le terminal"
     },
     {
+      "depot": "Anita",
+      "accroche": "Mon territoire, dessiné par l'eau",
+      "masquer": [
+        "revues",
+        "ada.json"
+      ],
+      "etat": "en-cours"
+    },
+    {
       "depot": "annie",
       "accroche": "Le résumé de mes PR, sans enjoliver"
     },
@@ -130,6 +139,7 @@
       "accroche": "Des outils pour tous les jours",
       "projets": [
         "anais",
+        "Anita",
         "Irene"
       ]
     }

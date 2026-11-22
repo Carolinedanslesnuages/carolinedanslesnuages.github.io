@@ -8,6 +8,7 @@ import { ref, computed, nextTick, watch } from 'vue';
 import { createFileSystem } from '../terminal/filesystem.js';
 import { loadProjectFiles } from '../data/project-files.js';
 import { readFileText } from '../data/file-text.js';
+import { statusLabel } from '../data/project-status.js';
 
 const props = defineProps({
   projects: { type: Array, required: true },
@@ -26,7 +27,6 @@ const previewState = ref('none');
 let openRequest = 0;
 let previewRequest = 0;
 
-const statusLabel = (shown) => (shown.status === 'trial' ? 'essai' : shown.version || 'en cours');
 const projectRoot = computed(() => (project.value ? `projets/${project.value.folder}` : ''));
 const relativeFolder = computed(() => currentFolder.value.slice(projectRoot.value.length + 1));
 const entries = computed(() => (fileSystem.value ? fileSystem.value.childrenOf(currentFolder.value) : []));
