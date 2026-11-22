@@ -1,14 +1,14 @@
 // RGAA checks in Chromium, criterion by criterion (official texts read with Marguerite).
 // Run by "npm run test:browser", site served on port 4173. Fails when a criterion fails.
 import { chromium } from 'playwright';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 const SITE_URL = process.env.URL || 'http://localhost:4173/';
 const AXE_SOURCE = readFileSync('node_modules/axe-core/axe.min.js', 'utf8');
 const AXE_RULES = { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] };
 const results = [];
 const check = (criterion, passed, message) => {
-  results.push(passed);
+  results.push({ criterion, passed });
   console.log(`${passed ? '✅' : '❌'} ${criterion} · ${message}`);
 };
 const browser = await chromium.launch();
@@ -198,5 +198,11 @@ const clipped = await page.evaluate(() => [...document.querySelectorAll('.icon-n
   .map((element) => element.textContent.trim().slice(0, 20)));
 check('10.12', (await horizontalOverflow(page)) <= 0 && clipped.length === 0, `espacement redéfini : rien de coupé${clipped.length ? ' (' + clipped.join(', ') + ')' : ''}`);
 await browser.close();
-console.log(`\n${results.filter(Boolean).length}/${results.length} vérifications réussies`);
-if (results.some((passed) => !passed)) process.exit(1);
+const passedCount = results.filter((result) => result.passed).length;
+console.log(`\n${passedCount}/${results.length} vérifications réussies`);
+// For the desktop widget: written only when asked (publishing workflow), from this very run.
+if (process.env.RGAA_RESULT) {
+  const criteria = new Set(results.map((result) => result.criterion).filter((criterion) => /^\d{1,2}\.\d{1,2}$/.test(criterion)));
+  writeFileSync(process.env.RGAA_RESULT, JSON.stringify({ passed: passedCount, total: results.length, criteria: criteria.size, checkedAt: new Date().toISOString() }) + '\n');
+}
+if (results.some((result) => !result.passed)) process.exit(1);

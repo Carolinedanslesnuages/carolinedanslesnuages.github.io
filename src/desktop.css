@@ -128,7 +128,7 @@
 /* ——— tablet and phone ——— */
 @media (max-width: 1000px) {
   .desktop { grid-template-columns: auto minmax(0, 1fr); }
-  .weight-widget { grid-column: 2; transform: none; }
+  .weight-widget { transform: none; }
 }
 @media (max-width: 760px) {
   .desktop-frame { padding: 8px; }
@@ -152,4 +152,26 @@
 }
 @media (hover: none) {
   .icon-cell:hover .bubble, .dock-cell:hover .dock-bubble { display: none; }
+}
+
+/* ——— the deck fills the window: only a thin edge of the mat shows ——— */
+body { padding: 8px max(8px, env(safe-area-inset-right, 0px)) 8px max(8px, env(safe-area-inset-left, 0px)); }
+.page { max-width: none; min-height: calc(100dvh - 16px); grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px; }
+.site-header { padding: 0 8px; }
+.site-header h1 { font-size: clamp(20px, 3vw, 24px); }
+.site-footer { padding: 12px 8px 0 calc(8px + 240px); } /* clear of the sticker on the deck's edge */
+.page > .deck { display: flex; flex-direction: column; padding: 14px; border-radius: 20px; }
+.desktop-frame { flex: 1; grid-template-rows: auto minmax(0, 1fr); }
+.desktop { min-height: 0; height: 100%; }
+.sticker.words { bottom: -12px; }
+.widgets { display: grid; gap: 22px; align-content: start; }
+.access-widget { transform: rotate(-1deg); }
+.access-widget a { color: var(--ink); text-decoration-color: var(--pink); text-underline-offset: 3px; }
+.access-widget a:focus { outline: 3px solid var(--pink); outline-offset: 2px; }
+@media (max-width: 1000px) { .widgets { grid-column: 2; } .access-widget { transform: none; } }
+@media (max-width: 760px) {
+  .page > .deck { padding: 10px; }
+  .site-footer { padding-left: 8px; padding-top: 18px; }
+  /* The cloud sticker sits where the clock would be: the clock is left out on a phone. */
+  .desktop-frame .screen-bar > span[aria-hidden="true"] { display: none; }
 }

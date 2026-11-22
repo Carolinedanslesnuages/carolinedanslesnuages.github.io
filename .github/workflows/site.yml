@@ -64,7 +64,7 @@ jobs:
         run: |
           npx vite preview --port 4173 &
           npx wait-on@8.0.1 -t 30000 http://localhost:4173/
-          npm run test:browser
+          RGAA_RESULT=dist/accessibilite.json npm run test:browser
       # Emmanuelle: the RGAA criteria checked on any site, sorted by official criterion.
       - name: Vérifier l'accessibilité avec Emmanuelle
         uses: Carolinedanslesnuages/emmanuelle@v1

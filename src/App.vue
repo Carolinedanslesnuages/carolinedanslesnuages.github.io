@@ -9,6 +9,7 @@ import ExplorerContent from './components/ExplorerContent.vue';
 import ProjectIcons from './components/ProjectIcons.vue';
 import Terminal from './components/Terminal.vue';
 import WeightWidget from './components/WeightWidget.vue';
+import AccessibilityWidget from './components/AccessibilityWidget.vue';
 import { createTerminal } from './terminal/engine.js';
 import { loadAllFiles } from './data/project-files.js';
 import siteData from './data/projects.json';
@@ -122,7 +123,10 @@ onBeforeUnmount(() => clearInterval(clockTimer));
             </ul>
           </nav>
           <ProjectIcons :projects="siteData.projects" @open="(project) => openExplorer(project.folder)" />
-          <WeightWidget />
+          <div class="widgets">
+            <WeightWidget />
+            <AccessibilityWidget />
+          </div>
         </div>
       </section>
 
