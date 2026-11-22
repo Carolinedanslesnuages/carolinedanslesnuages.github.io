@@ -39,6 +39,10 @@
       "accroche": "Mes règles de PR, partout pareilles"
     },
     {
+      "depot": "Ellen",
+      "accroche": "Les données de l'eau pour mes agents"
+    },
+    {
       "depot": "emilie",
       "nom": "Émilie",
       "accroche": "Banc d'essai de mes consignes d'agent"
@@ -48,11 +52,19 @@
       "accroche": "Le RGAA vérifié à chaque PR"
     },
     {
+      "depot": "eunice",
+      "accroche": "L'écoconception vérifiée à chaque PR"
+    },
+    {
       "depot": "Irene",
       "nom": "Irène",
       "accroche": "Alerte anti-arnaques administratives",
       "masquer": ["revues", "ada.json"],
       "etat": "essai"
+    },
+    {
+      "depot": "lucie",
+      "accroche": "Aucune donnée personnelle dans mes dépôts"
     },
     {
       "depot": "madeleine",
@@ -96,6 +108,10 @@
       "accroche": "Les droits des femmes, en carnet d'écolière"
     },
     {
+      "depot": "solange",
+      "accroche": "Le poids de mes sites, à chaque PR"
+    },
+    {
       "depot": "val",
       "accroche": "Le carbone de mon usage de l'IA"
     }
@@ -109,7 +125,10 @@
         "constance",
         "annie",
         "madeleine",
+        "lucie",
         "emmanuelle",
+        "solange",
+        "eunice",
         "rose",
         "reine"
       ]
@@ -122,6 +141,7 @@
         "olympe",
         "emilie",
         "marguerite",
+        "Ellen",
         "val"
       ]
     },
