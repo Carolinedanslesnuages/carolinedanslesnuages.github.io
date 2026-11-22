@@ -11,6 +11,8 @@ ce test-là reste à faire.
 
 Vérifications rejouées à chaque construction du site : `test/browser/rgaa.mjs` (critères
 marqués 🤖) et `test/browser/journey.mjs`. Si l'une échoue, le site n'est pas publié.
+Le résultat de `rgaa.mjs` lors de la publication est affiché sur le bureau, dans le widget
+« Accessibilité » (`accessibilite.json`) : vérifications réussies et nombre de critères couverts.
 
 Légende : **C** conforme · **NA** non applicable · 🤖 vérifié automatiquement à chaque construction.
 
