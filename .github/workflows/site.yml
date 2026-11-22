@@ -61,7 +61,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/ecoindex"
           "$RUNNER_TEMP/ecoindex/bin/pip" install --quiet ecoindex_compute==5.10.0
           node scripts/measure-ecoindex.mjs http://localhost:4173/ > "$RUNNER_TEMP/mesure-ecoindex.json"
-          "$RUNNER_TEMP/ecoindex/bin/python" scripts/ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" dist/ecoindex.json
+          "$RUNNER_TEMP/ecoindex/bin/python" scripts/compute-ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" dist/ecoindex.json
       # Emmanuelle: the RGAA criteria checked on any site, sorted by official criterion.
       - name: Vérifier l'accessibilité avec Emmanuelle
         uses: Carolinedanslesnuages/emmanuelle@v1

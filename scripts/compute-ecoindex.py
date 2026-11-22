@@ -4,7 +4,9 @@ Reads the measurement of scripts/measure-ecoindex.mjs and writes dist/ecoindex.j
 desktop widget: grade, score and the three measured values. The greenhouse gas and water
 estimates are left out on purpose.
 
-    python scripts/ecoindex.py measurement.json dist/ecoindex.json
+    python scripts/compute-ecoindex.py measurement.json dist/ecoindex.json
+
+The file is not named ecoindex.py: Python would import it instead of the official package.
 """
 import asyncio
 import json
@@ -35,5 +37,5 @@ async def main(measurement_path: str, output_path: str) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        sys.exit("Usage : python scripts/ecoindex.py <mesure.json> <sortie.json>")
+        sys.exit("Usage : python scripts/compute-ecoindex.py <mesure.json> <sortie.json>")
     asyncio.run(main(sys.argv[1], sys.argv[2]))

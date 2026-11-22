@@ -1,7 +1,7 @@
 <script setup>
 /**
  * Desktop widget: the EcoIndex of the home page, measured at publication (ecoindex.json, written
- * by scripts/ecoindex.py with the official package). Without a measurement, the widget is not
+ * by scripts/compute-ecoindex.py with the official package). Without a measurement, the widget is not
  * shown: no grade is ever invented.
  */
 import { ref, computed, onMounted } from 'vue';

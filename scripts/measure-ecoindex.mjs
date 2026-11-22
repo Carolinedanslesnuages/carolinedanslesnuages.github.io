@@ -7,7 +7,7 @@
  *   - requests: every HAR entry;
  *   - size: the sum of the transferred sizes, divided by 1000.
  * Prints { nodes, requests, size } as JSON. The score itself is computed by the official package
- * (scripts/ecoindex.py): the method is not copied here.
+ * (scripts/compute-ecoindex.py): the method is not copied here.
  *   node scripts/measure-ecoindex.mjs http://localhost:4173/
  */
 import { chromium } from 'playwright';

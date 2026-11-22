@@ -72,12 +72,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Mesurer et calculer l'EcoIndex
         run: |
+          set -o pipefail
           python3 -m venv "$RUNNER_TEMP/ecoindex"
           "$RUNNER_TEMP/ecoindex/bin/pip" install --quiet ecoindex_compute==5.10.0
           npx vite preview --port 4173 &
           npx wait-on@8.0.1 -t 30000 http://localhost:4173/
           node scripts/measure-ecoindex.mjs http://localhost:4173/ > "$RUNNER_TEMP/mesure-ecoindex.json"
-          "$RUNNER_TEMP/ecoindex/bin/python" scripts/ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" "$RUNNER_TEMP/ecoindex.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          "$RUNNER_TEMP/ecoindex/bin/python" scripts/compute-ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" "$RUNNER_TEMP/ecoindex.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
   resume:
     name: Résumé pour la relecture (Annie)
