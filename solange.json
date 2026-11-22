@@ -1,0 +1,5 @@
+{
+  "dossier": "dist",
+  "budgets": { "js": 600, "css": 20, "html": 5, "total": 650 },
+  "imageMax": 200
+}
