@@ -17,16 +17,13 @@
   ],
   "projets": [
     {
+      "depot": "anais",
+      "nom": "Anaïs",
+      "accroche": "Mon bullet journal dans le terminal"
+    },
+    {
       "depot": "constance",
       "accroche": "Mes règles de PR, partout pareilles"
-    },
-    {
-      "depot": "val",
-      "accroche": "Le carbone de mon usage de l'IA"
-    },
-    {
-      "depot": "marguerite",
-      "accroche": "Le RGAA officiel pour les agents"
     },
     {
       "depot": "emilie",
@@ -34,37 +31,46 @@
       "accroche": "Banc d'essai de mes consignes d'agent"
     },
     {
-      "depot": "olympe",
-      "accroche": "Vérificateur de skills"
+      "depot": "emmanuelle",
+      "accroche": "Le RGAA vérifié à chaque PR"
     },
     {
-      "depot": "niki",
-      "accroche": "Ce cyberdeck, en modèle réutilisable"
-    },
-    {
-      "depot": "rose",
-      "accroche": "Mes gitmoji roses, rouges et violets"
-    },
-    {
-      "depot": "reine",
-      "accroche": "Mes réglages GitHub, partout pareils"
-    },
-    {
-      "depot": "pauline",
-      "accroche": "Les mêmes consignes pour mes agents"
+      "depot": "Irene",
+      "nom": "Irène",
+      "accroche": "Alerte anti-arnaques administratives",
+      "etat": "essai"
     },
     {
       "depot": "madeleine",
       "accroche": "Garde-fou des dépendances d'agent"
     },
     {
-      "depot": "emmanuelle",
-      "accroche": "Le RGAA vérifié à chaque PR"
+      "depot": "marguerite",
+      "accroche": "Le RGAA officiel pour les agents"
     },
     {
-      "depot": "anais",
-      "nom": "Anaïs",
-      "accroche": "Mon bullet journal dans le terminal"
+      "depot": "marie",
+      "accroche": "Les scientifiques, en cahier de labo"
+    },
+    {
+      "depot": "niki",
+      "accroche": "Ce cyberdeck, en modèle réutilisable"
+    },
+    {
+      "depot": "olympe",
+      "accroche": "Vérificateur de skills"
+    },
+    {
+      "depot": "pauline",
+      "accroche": "Les mêmes consignes pour mes agents"
+    },
+    {
+      "depot": "reine",
+      "accroche": "Mes réglages GitHub, partout pareils"
+    },
+    {
+      "depot": "rose",
+      "accroche": "Mes gitmoji roses, rouges et violets"
     },
     {
       "depot": "severine",
@@ -76,14 +82,8 @@
       "accroche": "Les droits des femmes, en carnet d'écolière"
     },
     {
-      "depot": "marie",
-      "accroche": "Les scientifiques, en cahier de labo"
-    },
-    {
-      "depot": "Irene",
-      "nom": "Irène",
-      "accroche": "Alerte anti-arnaques administratives",
-      "etat": "essai"
+      "depot": "val",
+      "accroche": "Le carbone de mon usage de l'IA"
     }
   ],
   "bientot": []
