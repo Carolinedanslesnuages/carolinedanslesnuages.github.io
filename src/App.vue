@@ -1,16 +1,29 @@
 <script setup>
-/** The cyberdeck: terminal screen, cartridge bay (the projects), keys and stickers. */
-import { ref, shallowRef, onMounted } from 'vue';
+/**
+ * The cyberdeck, whose screen is a desktop: a dock on the left (terminal, explorer, mood, color),
+ * one icon per project, and the weight widget. Projects open in the explorer, in a window.
+ */
+import { ref, shallowRef, nextTick, onBeforeUnmount } from 'vue';
+import AppWindow from './components/AppWindow.vue';
+import ExplorerContent from './components/ExplorerContent.vue';
+import ProjectIcons from './components/ProjectIcons.vue';
 import Terminal from './components/Terminal.vue';
+import WeightWidget from './components/WeightWidget.vue';
 import { createTerminal } from './terminal/engine.js';
+import { loadAllFiles } from './data/project-files.js';
 import siteData from './data/projects.json';
 
 const terminal = shallowRef(null);
 const terminalView = ref(null);
+const terminalWindow = ref(null);
+const explorerWindow = ref(null);
+const explorer = ref(null);
+const announcement = ref('');
 /** Palette names are shown to the visitor ("Coque : menthe"): they stay in French. */
 const PALETTES = ['bonbon', 'menthe', 'peche'];
 const PALETTE_STORAGE_KEY = 'nuages-palette';
 const palette = ref('bonbon');
+let terminalLoading = null;
 
 try {
   const saved = localStorage.getItem(PALETTE_STORAGE_KEY);
@@ -19,11 +32,10 @@ try {
   /* storage unavailable: default palette */
 }
 
-onMounted(async () => {
-  // The files (several hundred KB) arrive after the first paint.
-  const { default: files } = await import('./data/files.json');
-  terminal.value = createTerminal({ files, data: siteData });
-});
+function announce(message) {
+  announcement.value = '';
+  setTimeout(() => (announcement.value = message), 60);
+}
 
 function changeColor(confirmColor) {
   palette.value = PALETTES[(PALETTES.indexOf(palette.value) + 1) % PALETTES.length];
@@ -32,15 +44,53 @@ function changeColor(confirmColor) {
   } catch {
     /* nothing to do */
   }
-  confirmColor(palette.value);
+  if (typeof confirmColor === 'function') confirmColor(palette.value);
+  else announce(`Coque : ${palette.value}.`);
 }
 
-const statusLabel = (project) => (project.status === 'trial' ? 'essai' : project.version || 'en cours');
+/** The terminal searches every project: all the files are loaded the first time it opens. */
+function startTerminal() {
+  if (!terminalLoading) {
+    terminalLoading = loadAllFiles().then((files) => {
+      terminal.value = createTerminal({ files, data: siteData });
+    });
+  }
+  return terminalLoading;
+}
+
+async function openTerminal(command) {
+  terminalWindow.value.open(() => document.getElementById('command'));
+  await startTerminal();
+  await nextTick();
+  if (command) terminalView.value.runCommand(command);
+}
+
 const runOnTerminal = (command) => terminalView.value && terminalView.value.runCommand(command);
+
+function openExplorer(folder) {
+  const current = explorer.value.currentProject();
+  const wanted = folder || (current ? current.folder : siteData.projects[0].folder);
+  if (!current || current.folder !== wanted) explorer.value.openProject(wanted);
+  explorerWindow.value.open(() => document.querySelector('.explorer-projects [aria-current="true"]'));
+}
+
+const DOCK_APPS = [
+  { label: 'Terminal', glyph: '>_', tint: 'pink', action: () => openTerminal() },
+  { label: 'Explorateur de fichiers', glyph: '▤', tint: 'mint', action: () => openExplorer() },
+  { label: 'Humeur', glyph: '☺', tint: 'yellow', action: () => openTerminal('humeur') },
+  { label: 'Changer la couleur du boîtier', glyph: '◐', tint: 'paper', action: () => changeColor() },
+];
+
+const clock = ref('--:--');
+const today = new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+const updateClock = () => (clock.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+updateClock();
+const clockTimer = setInterval(updateClock, 20000);
+onBeforeUnmount(() => clearInterval(clockTimer));
 </script>
 
 <template>
-  <a class="skip-link" href="#command">Aller au terminal</a>
+  <a class="skip-link" href="#projects">Aller aux projets</a>
   <div class="page">
     <header class="site-header">
       <h1>{{ siteData.nickname }}<span aria-hidden="true">_</span></h1>
@@ -55,41 +105,46 @@ const runOnTerminal = (command) => terminalView.value && terminalView.value.runC
         <path d="M43 42 Q47 46 51 42" fill="none" stroke="#2b1d3f" stroke-width="2.4" stroke-linecap="round" />
         <circle cx="32" cy="41" r="3.4" fill="#ff9fd2" /><circle cx="62" cy="41" r="3.4" fill="#ff9fd2" />
       </svg>
-      <svg class="sticker heart" width="40" height="38" viewBox="0 0 40 38" aria-hidden="true">
-        <path d="M20 34 C4 22 2 12 8 7 C13 3 18 5 20 10 C22 5 27 3 32 7 C38 12 36 22 20 34 Z" fill="#ff6fbf" stroke="#2b1d3f" stroke-width="3" stroke-linejoin="round" />
-      </svg>
       <span class="sticker words">{{ siteData.words.join(' · ') }}</span>
 
-      <Terminal ref="terminalView" :terminal="terminal" @change-color="changeColor" />
+      <section class="desktop-frame" aria-labelledby="desktop-title">
+        <div class="screen-bar">
+          <h2 id="desktop-title"><span class="status-light" aria-hidden="true"></span>nuages-os 3.0 · bureau</h2>
+          <span aria-hidden="true"><span class="desktop-date">{{ today }} · </span>{{ clock }}</span>
+        </div>
+        <div class="desktop">
+          <nav class="dock" aria-label="Applications">
+            <ul>
+              <li v-for="dockApp in DOCK_APPS" :key="dockApp.label" class="dock-cell">
+                <button :class="['dock-key', dockApp.tint]" type="button" :aria-label="dockApp.label" @click="dockApp.action()">{{ dockApp.glyph }}</button>
+                <span class="dock-bubble" aria-hidden="true">{{ dockApp.label }}</span>
+              </li>
+            </ul>
+          </nav>
+          <ProjectIcons :projects="siteData.projects" @open="(project) => openExplorer(project.folder)" />
+          <WeightWidget />
+        </div>
+      </section>
 
-      <nav class="keys" aria-label="Commandes rapides">
-        <button class="key" type="button" @click="runOnTerminal('moi')">MOI</button>
-        <button class="key" type="button" @click="runOnTerminal('projets')">PROJETS</button>
-        <button class="key" type="button" @click="runOnTerminal('ls ~')">DOSSIERS</button>
-        <button class="key" type="button" @click="terminalView.prepare('chercher ')">CHERCHER</button>
-        <button class="key" type="button" @click="runOnTerminal('aide')">AIDE</button>
-        <button class="key" type="button" @click="runOnTerminal('effacer')">EFFACER</button>
-        <span class="spacer"></span>
-        <span class="switch">Couleur
-          <button class="key pink" type="button" aria-label="Changer la couleur du boîtier" @click="runOnTerminal('couleur')">◐</button>
-        </span>
-      </nav>
+      <AppWindow ref="explorerWindow" title="Explorateur" window-id="explorer-window">
+        <ExplorerContent ref="explorer" :projects="siteData.projects" />
+      </AppWindow>
 
-      <aside class="bay" aria-labelledby="bay-title">
-        <h2 id="bay-title">Cartouches</h2>
-        <ul class="cartridge-list">
-        <li v-for="project in siteData.projects" :key="project.folder"><button class="cartridge" type="button" @click="runOnTerminal(project.command)">
-          <span class="slot" aria-hidden="true"></span>
-          <span><b>{{ project.name }}</b><small>{{ project.tagline }}</small></span>
-          <span :class="['status', { pending: project.status === 'in-progress' }]"><i aria-hidden="true"></i>{{ statusLabel(project) }}</span>
-        </button></li>
-        <li v-for="upcoming in siteData.upcoming" :key="upcoming.name" class="cartridge empty">
-          <span class="slot" aria-hidden="true" style="opacity: 0.35"></span>
-          <span><b>{{ upcoming.name }}</b><small>{{ upcoming.tagline }}</small></span>
-          <span class="status pending"><i aria-hidden="true"></i>bientôt</span>
-        </li>
-        </ul>
-      </aside>
+      <AppWindow ref="terminalWindow" title="Terminal" window-id="terminal-window">
+        <div class="terminal-window">
+          <Terminal ref="terminalView" :terminal="terminal" @change-color="changeColor" />
+          <nav class="keys" aria-label="Commandes rapides">
+            <button class="key" type="button" @click="runOnTerminal('moi')">MOI</button>
+            <button class="key" type="button" @click="runOnTerminal('projets')">PROJETS</button>
+            <button class="key" type="button" @click="runOnTerminal('ls ~')">DOSSIERS</button>
+            <button class="key" type="button" @click="terminalView.prepare('chercher ')">CHERCHER</button>
+            <button class="key" type="button" @click="runOnTerminal('aide')">AIDE</button>
+            <button class="key" type="button" @click="runOnTerminal('effacer')">EFFACER</button>
+          </nav>
+        </div>
+      </AppWindow>
+
+      <p class="visually-hidden" role="status" aria-live="polite">{{ announcement }}</p>
     </main>
 
     <footer class="site-footer">

@@ -7,9 +7,10 @@
  * the collection with a clear message: nothing is ever published by mistake.
  *
  * site.config.json keeps its French keys (public configuration). Writes src/data/projects.json and
- * src/data/files.json, in English. GITHUB_TOKEN is optional (rate limit).
+ * one src/data/files/<folder>.json per project, so that a project's files load only when it is
+ * opened. GITHUB_TOKEN is optional (rate limit).
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 
 const GITHUB_API = 'https://api.github.com';
 const RAW_CONTENT = 'https://raw.githubusercontent.com';
@@ -95,11 +96,11 @@ async function collectProject(account, configured) {
 async function main() {
   const config = JSON.parse(await readFile(new URL('../site.config.json', import.meta.url), 'utf8'));
   const projects = [];
-  const files = {};
+  const filesByFolder = {};
   for (const configured of config.projets) {
     const collected = await collectProject(config.compte, configured);
     projects.push(collected.project);
-    Object.assign(files, collected.files);
+    filesByFolder[collected.project.folder] = collected.files;
     const fileCount = Object.values(collected.files).filter((file) => !file.folder).length;
     console.log(`${collected.project.name} : ${fileCount} fichiers${collected.project.version ? `, ${collected.project.version}` : ''}`);
   }
@@ -112,9 +113,14 @@ async function main() {
     projects,
     upcoming: (config.bientot || []).map((upcoming) => ({ name: upcoming.nom, tagline: upcoming.accroche })),
   };
-  await mkdir(new URL('../src/data/', import.meta.url), { recursive: true });
+  const filesFolder = new URL('../src/data/files/', import.meta.url);
+  // Starting from an empty folder: a project removed from the configuration leaves no file behind.
+  await rm(filesFolder, { recursive: true, force: true });
+  await mkdir(filesFolder, { recursive: true });
   await writeFile(new URL('../src/data/projects.json', import.meta.url), JSON.stringify(siteData, null, 2));
-  await writeFile(new URL('../src/data/files.json', import.meta.url), JSON.stringify(files));
+  for (const [folder, files] of Object.entries(filesByFolder)) {
+    await writeFile(new URL(`${folder}.json`, filesFolder), JSON.stringify(files));
+  }
   console.log(`Collecte terminée : ${projects.length} projets.`);
 }
 

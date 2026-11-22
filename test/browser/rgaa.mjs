@@ -15,8 +15,12 @@ const browser = await chromium.launch();
 const openPage = async (viewport, reducedMotion = 'reduce') => {
   const page = await browser.newPage({ viewport, reducedMotion });
   await page.goto(SITE_URL);
-  await page.waitForSelector('text=Terminal prêt', { state: 'attached', timeout: 15000 });
+  await page.waitForSelector('.icon', { timeout: 15000 });
   return page;
+};
+const openTerminal = async (page) => {
+  await page.click('button[aria-label="Terminal"]');
+  await page.waitForSelector('text=Terminal prêt', { state: 'attached', timeout: 15000 });
 };
 const horizontalOverflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 const runCommand = async (page, command, waitMs = 0) => {
@@ -28,31 +32,46 @@ const runCommand = async (page, command, waitMs = 0) => {
 let page = await openPage({ width: 1280, height: 900 });
 // 12.7 skip link
 await page.keyboard.press('Tab');
-check('12.7', (await page.evaluate(() => document.activeElement.textContent)) === 'Aller au terminal', "premier Tab : le lien d'évitement « Aller au terminal »");
+check('12.7', (await page.evaluate(() => document.activeElement.textContent)) === 'Aller aux projets', "premier Tab : le lien d'évitement « Aller aux projets »");
 await page.keyboard.press('Enter');
-check('12.7', (await page.evaluate(() => location.hash)) === '#command', 'il mène au champ du terminal');
-// 12.8 tab order
+check('12.7', (await page.evaluate(() => document.activeElement.id)) === 'projects', 'il mène à la liste des projets');
+// 12.8 tab order: dock, then icons in reading order
 await page.goto(SITE_URL);
-await page.waitForSelector('text=Terminal prêt', { state: 'attached' });
+await page.waitForSelector('.icon');
 const tabOrder = [];
-for (let step = 0; step < 12; step++) {
+for (let step = 0; step < 8; step++) {
   await page.keyboard.press('Tab');
   tabOrder.push(await page.evaluate(() => {
     const element = document.activeElement;
-    return (element.getAttribute('aria-label') || element.id || element.textContent || '').trim().slice(0, 18);
+    return (element.getAttribute('aria-label') || element.dataset.folder || element.textContent || '').trim().slice(0, 30);
   }));
 }
 console.log('   ordre :', tabOrder.join(' → '));
-const firstKey = tabOrder.indexOf('MOI');
-// The first cartridge is read from the page: the order follows site.config.json (alphabetical).
-const firstCartridgeName = (await page.locator('button.cartridge b').first().textContent()).trim();
-const firstCartridge = tabOrder.findIndex((label) => label.startsWith(firstCartridgeName));
-const commandField = tabOrder.indexOf('command');
-check('12.8', tabOrder[1] === 'Écran du terminal' && commandField > 1 && firstKey === commandField + 1 && firstCartridge > firstKey, 'écran (et ses liens), champ, touches, puis cartouches');
+const firstIcon = await page.locator('.icon').first().getAttribute('data-folder');
+check('12.8', tabOrder[1] === 'Terminal' && tabOrder[4] === 'Changer la couleur du boîtier' && tabOrder[5] === firstIcon, 'lien d\'évitement, barre latérale, puis icônes');
 // 9.3 lists
+check('9.3', (await page.locator('ul#projects > li > button.icon').count()) >= 10, 'icônes de projet en <ul>/<li>');
+check('9.3', (await page.locator('nav.dock ul > li > button').count()) === 4, 'barre latérale en <ul>/<li>');
+// 1.4.13 (WCAG) info bubble: on focus, it describes the icon and closes with Escape
+await page.focus('.icon');
+const bubbleId = await page.evaluate(() => document.activeElement.getAttribute('aria-describedby'));
+check('bulle', !!bubbleId && (await page.locator(`#${bubbleId}[role=tooltip]`).isVisible()), 'focus sur une icône : bulle visible, reliée par aria-describedby');
+await page.keyboard.press('Escape');
+check('bulle', !(await page.locator(`#${bubbleId}`).isVisible()), 'Échap masque la bulle');
+// 7.1 windows: native modal dialog, named, focus inside, Escape, focus back
+await page.keyboard.press('Enter');
+await page.waitForSelector('dialog[open]');
+const dialogState = await page.evaluate(() => {
+  const dialog = document.querySelector('dialog[open]');
+  return { named: !!document.getElementById(dialog.getAttribute('aria-labelledby'))?.textContent, focusInside: dialog.contains(document.activeElement) };
+});
+check('7.1', dialogState.named && dialogState.focusInside, 'fenêtre : boîte de dialogue nommée, le focus est dedans');
+await page.keyboard.press('Escape');
+check('7.1', (await page.locator('dialog[open]').count()) === 0 && (await page.evaluate(() => document.activeElement.classList.contains('icon'))), "Échap ferme la fenêtre, le focus revient sur l'icône");
+await openTerminal(page);
+// 9.3 lists in the terminal
 await runCommand(page, 'ls ~/projets', 300);
 check('9.3', (await page.locator('.output ul.grid > li > button').count()) >= 5, 'liste de dossiers en <ul>/<li>');
-check('9.3', (await page.locator('ul.cartridge-list > li').count()) >= 6, 'cartouches en <ul>/<li>');
 // 13.5 cryptic content: no branch, bullet or drawing readable by a screen reader
 await runCommand(page, 'tree ~/projets/val');
 await runCommand(page, 'projets');
@@ -93,7 +112,7 @@ const contrastRatio = await page.evaluate(() => {
 });
 check('3.3', contrastRatio >= 3, `bordure du champ : ${contrastRatio.toFixed(1)}:1`);
 // 10.7 visible focus on every kind of element
-for (const selector of ['#command', '.cartridge', '.key', '.output .entry', '.screen']) {
+for (const selector of ['#command', '.key', '.output .entry', '.screen', '.window-close']) {
   await page.focus(selector);
   const visible = await page.evaluate(() => {
     const element = document.activeElement;
@@ -103,21 +122,41 @@ for (const selector of ['#command', '.cartridge', '.key', '.output .entry', '.sc
   check('10.7', visible, `focus visible sur ${selector}`);
 }
 // 7.5 status message
-check('7.5', (await page.getAttribute('[role=status]', 'aria-live')) === 'polite', 'les annonces passent par un message de statut');
+check('7.5', (await page.locator('[role=status]').evaluateAll((regions) => regions.every((region) => region.getAttribute('aria-live') === 'polite'))), 'les annonces passent par un message de statut');
 const axeViolations = await page.evaluate(async ({ source, rules }) => {
   eval(source);
   return (await window.axe.run(document, rules)).violations.map((violation) => violation.id);
 }, { source: AXE_SOURCE, rules: AXE_RULES });
 check('axe', axeViolations.length === 0, `axe-core : ${axeViolations.length ? axeViolations.join(', ') : '0 violation'}`);
+await page.keyboard.press('Escape');
+await page.click('.icon');
+await page.waitForSelector('.explorer pre');
+for (const selector of ['.explorer-entry', '.explorer pre', '.explorer-preview a']) {
+  await page.focus(selector);
+  const visible = await page.evaluate(() => parseFloat(getComputedStyle(document.activeElement).outlineWidth) >= 2 && getComputedStyle(document.activeElement).outlineStyle !== 'none');
+  check('10.7', visible, `focus visible sur ${selector}`);
+}
+await page.keyboard.press('Escape');
+for (const selector of ['.icon', '.dock-key']) {
+  await page.focus(selector);
+  const visible = await page.evaluate(() => parseFloat(getComputedStyle(document.activeElement).outlineWidth) >= 2 && getComputedStyle(document.activeElement).outlineStyle !== 'none');
+  check('10.7', visible, `focus visible sur ${selector}`);
+}
 await page.close();
 
 // 10.11 and 10.4: 320 px wide, and the equivalent of a 200 % zoom
 for (const [criterion, viewport] of [['10.11', { width: 320, height: 640 }], ['10.4', { width: 640, height: 450 }]]) {
   page = await openPage(viewport);
   check(criterion, (await horizontalOverflow(page)) <= 0, `${viewport.width} px : pas de défilement horizontal`);
+  const iconsOutside = await page.evaluate(() => {
+    const desktop = document.querySelector('.desktop').getBoundingClientRect();
+    return [...document.querySelectorAll('.icon, .dock-key, .weight-widget')].filter((element) => element.getBoundingClientRect().right > desktop.right + 1).length;
+  });
+  check(criterion, iconsOutside === 0, `${viewport.width} px : icônes et widget restent dans le bureau`);
+  await openTerminal(page);
   const overflowing = await page.evaluate(() => {
     const frame = document.querySelector('.screen-frame').getBoundingClientRect();
-    return [...document.querySelectorAll('.screen, .command-line, .command-line input, .screen-bar')]
+    return [...document.querySelectorAll('.screen, .command-line, .command-line input')]
       .filter((element) => element.getBoundingClientRect().right > frame.right + 1)
       .map((element) => element.className || element.id);
   });
@@ -128,6 +167,7 @@ for (const [criterion, viewport] of [['10.11', { width: 320, height: 640 }], ['1
 // and does not run when the system asks for less motion.
 {
   const animatedPage = await openPage({ width: 1280, height: 900 }, 'no-preference');
+  await openTerminal(animatedPage);
   await runCommand(animatedPage, 'humeur');
   const seenEmojis = new Set();
   const startedAt = Date.now();
@@ -142,15 +182,18 @@ for (const [criterion, viewport] of [['10.11', { width: 320, height: 640 }], ['1
   check('13.8', seenEmojis.size > 2 && duration < 5000 && stillShaking === 0, `humeur : ${seenEmojis.size} expressions, animation arrêtée seule en ${(duration / 1000).toFixed(1)} s`);
   await animatedPage.close();
   const calmPage = await openPage({ width: 1280, height: 900 });
-  await runCommand(calmPage, 'humeur', 150);
+  await calmPage.click('button[aria-label="Humeur"]');
+  await calmPage.waitForSelector('.mood-text', { timeout: 15000 });
+  check('13.8', true, 'touche Humeur de la barre latérale : le terminal affiche l\'humeur');
   check('13.8', (await calmPage.locator('.mood-text').count()) === 1 && (await calmPage.locator('.mood-emoji.shaking').count()) === 0, 'humeur : aucune animation quand le système en demande moins');
-  check('7.5', /^Humeur du moment : /.test(await calmPage.textContent('[role=status]')), "humeur : l'humeur finale est annoncée");
+  await calmPage.waitForFunction(() => /^Humeur du moment : /.test(document.querySelector('.screen-frame [role=status]').textContent));
+  check('7.5', true, "humeur : l'humeur finale est annoncée");
   await calmPage.close();
 }
 // 10.12 text spacing overridden
 page = await openPage({ width: 1280, height: 900 });
 await page.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: .12em !important; word-spacing: .16em !important; } p { margin-bottom: 2em !important; }' });
-const clipped = await page.evaluate(() => [...document.querySelectorAll('.cartridge b, .cartridge small, .key, h1, .site-header p')]
+const clipped = await page.evaluate(() => [...document.querySelectorAll('.icon-name, .dock-key, .weight-widget p, h1, .site-header p')]
   .filter((element) => element.scrollWidth > element.clientWidth + 1)
   .map((element) => element.textContent.trim().slice(0, 20)));
 check('10.12', (await horizontalOverflow(page)) <= 0 && clipped.length === 0, `espacement redéfini : rien de coupé${clipped.length ? ' (' + clipped.join(', ') + ')' : ''}`);

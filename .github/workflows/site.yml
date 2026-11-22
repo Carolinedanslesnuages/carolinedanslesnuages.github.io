@@ -44,6 +44,18 @@ jobs:
 
       - run: npm run build
 
+      # The desktop widget shows the weight Solange measures, never an estimate.
+      - name: Récupérer Solange
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: Carolinedanslesnuages/solange
+          ref: v1
+          path: .solange
+      - name: Peser le site pour le widget
+        run: |
+          node .solange/bin/solange.mjs --json > "$RUNNER_TEMP/solange.json" || true
+          node scripts/write-weight.mjs "$RUNNER_TEMP/solange.json"
+
       # Accessibility (RGAA, criteria read with Marguerite) and journey in a real browser:
       # if a criterion breaks, the site is not published.
       - name: Installer Chromium

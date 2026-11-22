@@ -217,7 +217,7 @@ export function createTerminal({ files, data, random = Math.random }) {
     });
     return {
       lines: [
-        textLine('Cartouches installées :', 'heading'),
+        textLine('Projets installés :', 'heading'),
         ...projects.map(projectRow),
         ...(data.upcoming || []).map(upcomingRow),
         { parts: ['Parcourir : ', entryFor('projets', '~/projets')] },
@@ -312,13 +312,13 @@ export function createTerminal({ files, data, random = Math.random }) {
 
   const fileCount = Object.keys(fileSystem.nodes).filter((path) => !fileSystem.nodes[path].folder).length;
   const bootLines = [
-    textLine('NUAGES-OS 2.0  ·  démarrage', 'heading'),
+    textLine('NUAGES-OS 3.0  ·  démarrage', 'heading'),
     { style: 'success', parts: ['mémoire ', decoration('........... '), 'curiosité illimitée'] },
     { style: 'success', parts: ['fichiers ', decoration('.......... '), `${fileCount} montés dans ~/projets`] },
     { style: 'warning', parts: ['café ', decoration('.............. '), 'à recharger'] },
     textLine(''),
     textLine(data.tagline || ''),
-    { style: 'muted', parts: ['Tapez « aide », ouvrez ', entryFor('lisez-moi.txt'), ', ou insérez une cartouche.'] },
+    { style: 'muted', parts: ['Tapez « aide », ouvrez ', entryFor('lisez-moi.txt'), ', ou ouvrez une icône du bureau.'] },
   ];
 
   return { execute, complete, bootLines, prompt: () => displayPath(currentFolder), entryFor };
