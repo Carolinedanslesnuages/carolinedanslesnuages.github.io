@@ -151,7 +151,7 @@ for (const [criterion, viewport] of [['10.11', { width: 320, height: 640 }], ['1
   check(criterion, (await horizontalOverflow(page)) <= 0, `${viewport.width} px : pas de défilement horizontal`);
   const iconsOutside = await page.evaluate(() => {
     const desktop = document.querySelector('.desktop').getBoundingClientRect();
-    return [...document.querySelectorAll('.icon, .dock-key, .weight-widget')].filter((element) => element.getBoundingClientRect().right > desktop.right + 1).length;
+    return [...document.querySelectorAll('.icon, .dock-key, .desk-widget')].filter((element) => element.getBoundingClientRect().right > desktop.right + 1).length;
   });
   check(criterion, iconsOutside === 0, `${viewport.width} px : icônes et widget restent dans le bureau`);
   await openTerminal(page);
@@ -194,7 +194,7 @@ for (const [criterion, viewport] of [['10.11', { width: 320, height: 640 }], ['1
 // 10.12 text spacing overridden
 page = await openPage({ width: 1280, height: 900 });
 await page.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: .12em !important; word-spacing: .16em !important; } p { margin-bottom: 2em !important; }' });
-const clipped = await page.evaluate(() => [...document.querySelectorAll('.icon-name, .dock-key, .weight-widget p, h1, .site-header p')]
+const clipped = await page.evaluate(() => [...document.querySelectorAll('.icon-name, .dock-key, .desk-widget p, h1, .site-header p')]
   .filter((element) => element.scrollWidth > element.clientWidth + 1)
   .map((element) => element.textContent.trim().slice(0, 20)));
 check('10.12', (await horizontalOverflow(page)) <= 0 && clipped.length === 0, `espacement redéfini : rien de coupé${clipped.length ? ' (' + clipped.join(', ') + ')' : ''}`);

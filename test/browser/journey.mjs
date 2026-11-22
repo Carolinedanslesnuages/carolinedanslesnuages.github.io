@@ -43,8 +43,9 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     }
     errors.push(`${deviceName} console : ${message.text()}`);
   });
-  // The RGAA result is written after these tests: a sample stands in for it, to check the widget.
+  // The RGAA result and the EcoIndex are written after these tests: samples stand in for them, to check the widgets.
   await page.route('**/accessibilite.json', (route) => route.fulfill({ json: { passed: 39, total: 39, criteria: 14, checkedAt: '2026-11-22T10:00:00Z' } }));
+  await page.route('**/ecoindex.json', (route) => route.fulfill({ json: { grade: 'B', score: 72, nodes: 100, requests: 100, sizeKb: 100, measuredAt: '2026-11-22T10:00:00Z' } }));
   await page.goto(SITE_URL);
   await page.waitForSelector('.icon');
   const iconCount = await page.locator('.icon').count();
@@ -133,9 +134,8 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     check((await page.textContent('.explorer-tagline')).includes('bullet journal'), "téléphone : l'accroche du projet est en haut de l'explorateur");
     await page.click('.window-close');
   }
-  const widget = page.locator('aside[aria-labelledby="weight-title"]');
-  if (await widget.count()) check(/\d+ Ko/.test(await widget.textContent()), `${deviceName} : widget du poids mesuré par Solange`);
-  else console.log(`   (${deviceName} : pas de poids.json, widget masqué)`);
+  await page.waitForSelector('.eco-widget');
+  check(/^EcoIndex de la page\s*B 72\/100/.test((await page.textContent('.eco-widget')).trim()), `${deviceName} : widget EcoIndex, la note et le score`);
   await page.waitForSelector('.access-widget');
   check((await page.textContent('.access-widget')).includes('39/39'), `${deviceName} : widget d'accessibilité, Marguerite et Emmanuelle citées`);
   const deckShare = await page.evaluate(() => document.querySelector('.deck').getBoundingClientRect().width / window.innerWidth);

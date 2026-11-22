@@ -44,18 +44,6 @@ jobs:
 
       - run: npm run build
 
-      # The desktop widget shows the weight Solange measures, never an estimate.
-      - name: Récupérer Solange
-        uses: actions/checkout@v7.0.1
-        with:
-          repository: Carolinedanslesnuages/solange
-          ref: v1
-          path: .solange
-      - name: Peser le site pour le widget
-        run: |
-          node .solange/bin/solange.mjs --json > "$RUNNER_TEMP/solange.json" || true
-          node scripts/write-weight.mjs "$RUNNER_TEMP/solange.json"
-
       # Accessibility (RGAA, criteria read with Marguerite) and journey in a real browser:
       # if a criterion breaks, the site is not published.
       - name: Installer Chromium
@@ -65,6 +53,15 @@ jobs:
           npx vite preview --port 4173 &
           npx wait-on@8.0.1 -t 30000 http://localhost:4173/
           RGAA_RESULT=dist/accessibilite.json npm run test:browser
+      # EcoIndex of the home page for the desktop widget: measured like the official scraper,
+      # computed by the official package. A failure only hides the widget, it never blocks publishing.
+      - name: Calculer l'EcoIndex pour le widget
+        continue-on-error: true
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ecoindex"
+          "$RUNNER_TEMP/ecoindex/bin/pip" install --quiet ecoindex_compute==5.10.0
+          node scripts/measure-ecoindex.mjs http://localhost:4173/ > "$RUNNER_TEMP/mesure-ecoindex.json"
+          "$RUNNER_TEMP/ecoindex/bin/python" scripts/ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" dist/ecoindex.json
       # Emmanuelle: the RGAA criteria checked on any site, sorted by official criterion.
       - name: Vérifier l'accessibilité avec Emmanuelle
         uses: Carolinedanslesnuages/emmanuelle@v1
