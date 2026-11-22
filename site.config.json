@@ -51,6 +51,7 @@
       "depot": "Irene",
       "nom": "Irène",
       "accroche": "Alerte anti-arnaques administratives",
+      "masquer": ["revues", "ada.json"],
       "etat": "essai"
     },
     {
