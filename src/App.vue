@@ -13,6 +13,7 @@ import EcoIndexWidget from './components/EcoIndexWidget.vue';
 import AccessibilityWidget from './components/AccessibilityWidget.vue';
 import { createTerminal } from './terminal/engine.js';
 import { loadAllFiles } from './data/project-files.js';
+import { statusLabel } from './data/project-status.js';
 import siteData from './data/projects.json';
 
 const terminal = shallowRef(null);
@@ -79,7 +80,6 @@ function openExplorer(folder) {
 }
 
 const projectByFolder = new Map(siteData.projects.map((project) => [project.folder, project]));
-const statusLabel = (project) => (project.status === 'trial' ? 'essai' : project.version || 'en cours');
 
 /** Desktop icons: the theme folders, then the projects kept in no folder (never hidden). */
 const desktopItems = computed(() => {
