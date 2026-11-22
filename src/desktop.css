@@ -103,6 +103,7 @@
 .explorer h3 small { font-weight: 500; color: #5e4a78; }
 .explorer-projects { padding: 12px; border-right: 2px solid var(--ink); background: var(--plastic-light); overflow-y: auto; }
 .explorer-files { padding: 12px; border-right: 2px solid var(--ink); overflow-y: auto; }
+.explorer-namesake { margin: 2px 0 8px; padding: 8px 10px; border-radius: 8px; background: var(--plastic-light); font: 500 13px/1.4 var(--font-sticker); color: var(--ink); }
 .explorer-tagline { margin: 0 0 10px; font: 500 13px var(--font-sticker); color: #4a3a63; }
 .explorer-path { margin: 0 0 6px; font: 18px var(--font-screen); color: #a0397a; overflow-wrap: anywhere; }
 .explorer-entry {

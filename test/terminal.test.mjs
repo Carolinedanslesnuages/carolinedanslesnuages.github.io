@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerminal, MOODS } from '../src/terminal/engine.js';
 import { resolvePath } from '../src/terminal/filesystem.js';
-import { keepPath } from '../scripts/collect.mjs';
+import { keepPath, namesakeOf } from '../scripts/collect.mjs';
 
 const FILES = {
   'projets/constance/README.md': { content: '# Constance\n\nGitleaks vérifié.\nLigne 4', url: 'https://github.com/x/constance/blob/main/README.md' },
@@ -128,6 +128,13 @@ test('les annonces restent courtes', () => {
   for (const command of ['aide', 'projets', 'tree', 'cat projets/constance/README.md', 'chercher e']) {
     assert.ok(terminal.execute(command).announcement.length <= 400, command);
   }
+});
+
+test('collecte : pourquoi ce nom, repris du README en texte simple', () => {
+  const readme = '# Val\n\nL\'empreinte.\n\nLe nom rend hommage à *Valérie*,\nau [GIEC](https://ipcc.ch).\n\n## Suite';
+  assert.equal(namesakeOf(readme), 'Le nom rend hommage à Valérie, au GIEC.');
+  assert.equal(namesakeOf('# Sans\n\nAucune explication.'), '');
+  assert.equal(namesakeOf(undefined), '');
 });
 
 test('collecte : dossiers cachés et dépendances écartés', () => {

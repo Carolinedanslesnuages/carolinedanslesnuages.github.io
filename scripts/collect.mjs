@@ -48,6 +48,26 @@ async function checkedRepository(account, repoName) {
   return repository;
 }
 
+/**
+ * Why the project has this name: the README paragraph that starts with "Le nom", as plain text
+ * (Markdown emphasis, links and code marks removed). Empty when the README has none.
+ */
+export function namesakeOf(readme) {
+  const paragraphs = String(readme || '').split(/\n\s*\n/);
+  const paragraph = paragraphs.find((candidate) => /^Le nom\b/.test(candidate.trim()));
+  if (!paragraph) return '';
+  return paragraph
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function readReadme(account, repository) {
+  const response = await fetch(`${RAW_CONTENT}/${account}/${repository.name}/${repository.default_branch}/README.md`);
+  return response.ok ? response.text() : '';
+}
+
 async function collectFiles(account, repository, folder) {
   const branch = repository.default_branch;
   const tree = await fetchGithub(`/repos/${account}/${repository.name}/git/trees/${encodeURIComponent(branch)}?recursive=1`);
@@ -83,6 +103,7 @@ async function collectProject(account, configured) {
       command: folder.normalize('NFD').replace(/\p{Diacritic}/gu, ''),
       folder,
       tagline: configured.accroche || repository.description || '',
+      namesake: namesakeOf(await readReadme(account, repository)),
       description: repository.description || '',
       version: release ? release.tag_name : null,
       status: STATUSES[configured.etat] || (release ? 'released' : 'in-progress'),
