@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  # Reconstruit chaque nuit : versions et fichiers des projets à jour
+  # Rebuilt every night: project versions and files kept up to date
   schedule:
     - cron: "0 3 * * *"
   workflow_dispatch:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   site:
-    # Ubuntu 24.04 fixé : Playwright 1.56 ne prend pas en charge Ubuntu 26.04 (ubuntu-latest).
+    # Ubuntu 24.04 pinned: Playwright 1.56 does not support Ubuntu 26.04 (ubuntu-latest).
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -36,7 +36,7 @@ jobs:
       - run: npm ci
       - run: npm test
 
-      # Seuls les dépôts publics de site.config.json sont collectés (refus sinon).
+      # Only the public repositories of site.config.json are collected (refused otherwise).
       - name: Collecter les projets depuis GitHub
         run: npm run collect
         env:
@@ -44,8 +44,8 @@ jobs:
 
       - run: npm run build
 
-      # Accessibilité (RGAA, critères lus avec Marguerite) et parcours dans un vrai navigateur :
-      # si un critère casse, le site n'est pas publié.
+      # Accessibility (RGAA, criteria read with Marguerite) and journey in a real browser:
+      # if a criterion breaks, the site is not published.
       - name: Installer Chromium
         run: npx playwright install --with-deps chromium
       - name: Vérifier le site dans le navigateur (parcours + RGAA)
