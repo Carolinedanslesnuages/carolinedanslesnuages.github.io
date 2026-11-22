@@ -6,6 +6,7 @@
  */
 import { ref, nextTick, watch } from 'vue';
 import LinePart from './LinePart.vue';
+import { readFileText } from '../data/file-text.js';
 
 const props = defineProps({ terminal: { type: Object, default: null } });
 const emit = defineEmits(['change-color']);
@@ -53,6 +54,14 @@ function runCommand(command) {
   const shown = display(result.lines, result.instant ? 0 : 35);
   prompt.value = props.terminal.prompt();
   if (!result.changeColor) shown.then(() => announce(result.announcement));
+  if (result.pendingFile) showPendingFile(result.pendingFile);
+}
+
+/** A project file is read from GitHub, then shown under the "Lecture…" line. */
+async function showPendingFile({ path, raw }) {
+  const text = await readFileText(raw);
+  const fileResult = props.terminal.fileLines(path, text);
+  display(fileResult.lines, 0).then(() => announce(fileResult.announcement));
 }
 
 function prepare(prefix) {

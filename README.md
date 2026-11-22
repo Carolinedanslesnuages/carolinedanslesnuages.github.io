@@ -5,8 +5,9 @@ bulle dit de quoi il s'agit), une barre latérale (terminal, explorateur, humeur
 widget du poids du site, mesuré par [Solange](https://github.com/Carolinedanslesnuages/solange) à
 chaque publication. Vue 3 + Vite, publié sur GitHub Pages.
 
-Les fichiers d'un projet ne se téléchargent qu'à son ouverture dans l'explorateur ; le terminal,
-qui cherche dans tous les projets, les charge tous la première fois qu'on l'ouvre.
+Le site ne contient que l'arborescence des projets (noms des fichiers et des dossiers). Le texte
+d'un fichier est lu sur GitHub au moment où on l'ouvre, dans l'explorateur ou avec `cat`. La
+commande `chercher` cherche donc dans les noms des fichiers, pas dans leur texte.
 
 ## Ajouter un projet
 
@@ -17,8 +18,8 @@ qui cherche dans tous les projets, les charge tous la première fois qu'on l'ouv
    les versions et les fichiers à jour.
 
 Les dossiers d'outillage cachés (`.claude`, `.agents`…), les dépendances et les fichiers générés
-ne sont pas repris. Le texte des fichiers de plus de 40 Ko n'est pas affiché : un lien mène à
-GitHub.
+ne sont pas repris. Les fichiers de plus de 40 Ko, et ceux qui ne sont pas du texte, ne s'affichent pas : un lien
+mène à GitHub.
 
 ## Développer
 

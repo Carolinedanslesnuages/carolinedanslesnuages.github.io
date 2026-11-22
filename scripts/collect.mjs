@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Collects from GitHub what the site shows: for each project of site.config.json, its
- * description, latest release and files (the text of small readable files).
+ * description, latest release and file tree. The text of the files is NOT copied: a small readable
+ * file gets its "raw" address, and the site reads it from GitHub when it is opened.
  *
  * Safety: only PUBLIC repositories are collected. A private, missing or renamed repository stops
  * the collection with a clear message: nothing is ever published by mistake.
@@ -62,8 +63,7 @@ async function collectFiles(account, repository, folder) {
     if (ENGLISH_FILE.test(item.path)) file.lang = 'en';
     if (TEXT_FILE.test(item.path) && item.size <= MAX_FILE_BYTES) {
       const encodedPath = item.path.split('/').map(encodeURIComponent).join('/');
-      const response = await fetch(`${RAW_CONTENT}/${account}/${repository.name}/${branch}/${encodedPath}`);
-      if (response.ok) file.content = await response.text();
+      file.raw = `${RAW_CONTENT}/${account}/${repository.name}/${branch}/${encodedPath}`;
     }
     files[sitePath] = file;
   }

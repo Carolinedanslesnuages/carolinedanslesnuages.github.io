@@ -7,6 +7,9 @@
  * {decoration}: purely visual characters (tree branches, dots, bullets, drawings), hidden from
  * screen readers (RGAA 13.5: no cryptic content without an alternative).
  * Command names stay in French: they are the site's interface.
+ *
+ * The text of the projects' files is not in the site: a file has a "raw" address, and "cat" returns
+ * { pendingFile } for the screen to fetch it, then fileLines() turns the text into lines.
  */
 import { createFileSystem, displayPath, resolvePath, withoutAccents } from './filesystem.js';
 
@@ -111,10 +114,25 @@ export function createTerminal({ files, data, random = Math.random }) {
     if (!fileSystem.exists(target)) return { lines: [textLine(`cat : ${typed} : aucun fichier de ce nom.`, 'warning')] };
     if (fileSystem.isFolder(target)) return { lines: [textLine(`cat : ${typed} est un dossier. Essayez « ls ${typed} ».`, 'warning')] };
     const file = fileSystem.nodes[target];
-    if (typeof file.content !== 'string') {
-      return { lines: [textLine(`${fileSystem.nameOf(target)} : fichier binaire ou trop gros pour l'écran.`, 'warning'), githubLink(file.url, 'le voir sur GitHub')] };
+    if (typeof file.content === 'string') return fileLines(target, file.content);
+    if (file.raw) {
+      return {
+        lines: [textLine(`Lecture de ${displayPath(target)} sur GitHub…`, 'muted')],
+        pendingFile: { path: target, raw: file.raw },
+        announcement: `Lecture de ${displayPath(target)}…`,
+      };
     }
-    const contentLines = file.content.replace(/\n$/, '').split('\n');
+    return { lines: [textLine(`${fileSystem.nameOf(target)} : fichier binaire ou trop gros pour l'écran.`, 'warning'), githubLink(file.url, 'le voir sur GitHub')] };
+  }
+
+  /** The lines of a file from its text; without text (GitHub unreachable), a link to the file. */
+  function fileLines(target, content) {
+    const file = fileSystem.nodes[target];
+    if (typeof content !== 'string') {
+      const message = `${fileSystem.nameOf(target)} : impossible de le lire sur GitHub pour l'instant.`;
+      return { lines: [textLine(message, 'warning'), githubLink(file.url, 'le voir sur GitHub')], announcement: message };
+    }
+    const contentLines = content.replace(/\n$/, '').split('\n');
     const lines = [
       { style: 'heading', parts: [decoration('── '), displayPath(target), decoration(' ──')] },
       ...contentLines.slice(0, MAX_FILE_LINES).map((text) => ({ ...textLine(text, 'file-line'), lang: file.lang })),
@@ -241,7 +259,7 @@ export function createTerminal({ files, data, random = Math.random }) {
         textLine("  cd <dossier>       entrer (.. pour remonter, ~ pour l'accueil)"),
         textLine('  cat <fichier>      lire un fichier'),
         textLine("  tree [dossier]     l'arborescence"),
-        textLine('  chercher <mots>    dans les noms et le contenu des fichiers'),
+        textLine('  chercher <mots>    dans les noms des fichiers'),
         textLine(`  ${projects.map((project) => project.command).join(' · ')}`),
         textLine('  log [projet]       les derniers commits, emoji en rose'),
         textLine('  pwd · moi · projets · couleur · effacer'),
@@ -321,5 +339,5 @@ export function createTerminal({ files, data, random = Math.random }) {
     { style: 'muted', parts: ['Tapez « aide », ouvrez ', entryFor('lisez-moi.txt'), ', ou ouvrez une icône du bureau.'] },
   ];
 
-  return { execute, complete, bootLines, prompt: () => displayPath(currentFolder), entryFor };
+  return { execute, complete, fileLines, bootLines, prompt: () => displayPath(currentFolder), entryFor };
 }
