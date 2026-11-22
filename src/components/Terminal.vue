@@ -49,9 +49,10 @@ function runCommand(command) {
   if (result.changeColor) {
     emit('change-color', (paletteName) => display([{ style: 'success', parts: [`Coque : ${paletteName}.`] }], 0) && announce(`Coque : ${paletteName}.`));
   }
-  display(result.lines, result.instant ? 0 : 35);
+  // Announced once shown: a command typed while the terminal boots is announced after "Terminal prêt".
+  const shown = display(result.lines, result.instant ? 0 : 35);
   prompt.value = props.terminal.prompt();
-  if (!result.changeColor) announce(result.announcement);
+  if (!result.changeColor) shown.then(() => announce(result.announcement));
 }
 
 function prepare(prefix) {
@@ -99,26 +100,16 @@ watch(
   (terminal) => {
     if (!terminal) return;
     lines.value = [];
-    display(terminal.bootLines, 140).then(() => announce('Terminal prêt. Tapez une commande, ou utilisez les touches et les cartouches.'));
+    display(terminal.bootLines, 140).then(() => announce('Terminal prêt. Tapez une commande, par exemple « aide ».'));
   },
   { immediate: true },
 );
 
-const clock = ref('--:--');
-const updateClock = () => (clock.value = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
-updateClock();
-setInterval(updateClock, 20000);
-
-defineExpose({ runCommand, prepare });
+defineExpose({ runCommand, prepare, focusField: () => field.value && field.value.focus() });
 </script>
 
 <template>
-  <section class="screen-frame" aria-labelledby="terminal-title">
-    <h2 id="terminal-title" class="visually-hidden">Terminal</h2>
-    <div class="screen-bar">
-      <span><span class="status-light" aria-hidden="true"></span>nuages-os 2.0</span>
-      <span aria-hidden="true">{{ clock }}</span>
-    </div>
+  <div class="screen-frame">
     <div ref="screen" class="screen" tabindex="0" role="region" aria-label="Écran du terminal">
       <div class="output">
         <p v-if="!terminal" class="loading">Chargement des dossiers…</p>
@@ -132,5 +123,5 @@ defineExpose({ runCommand, prepare });
       <input id="command" ref="field" v-model="input" name="commande" spellcheck="false" placeholder="tapez « aide »" aria-describedby="command-help" @keydown="onKeydown">
     </form>
     <p id="command-help" class="visually-hidden">Tapez une commande puis Entrée. Exemples : aide, ls, cd projets, cat moi.txt, chercher gitleaks. Tab complète un nom quand c'est possible.</p>
-  </section>
+  </div>
 </template>

@@ -1,7 +1,12 @@
 # carolinedanslesnuages.github.io
 
-Mon site : un cyberdeck pastel, avec un terminal pour explorer les dossiers de mes projets open
-source. Vue 3 + Vite, publié sur GitHub Pages.
+Mon site : un cyberdeck pastel dont l'écran est un bureau. Une icône par projet open source (une
+bulle dit de quoi il s'agit), une barre latérale (terminal, explorateur, humeur, couleur) et un
+widget du poids du site, mesuré par [Solange](https://github.com/Carolinedanslesnuages/solange) à
+chaque publication. Vue 3 + Vite, publié sur GitHub Pages.
+
+Les fichiers d'un projet ne se téléchargent qu'à son ouverture dans l'explorateur ; le terminal,
+qui cherche dans tous les projets, les charge tous la première fois qu'on l'ouvre.
 
 ## Ajouter un projet
 
@@ -26,7 +31,8 @@ npm test                                           # moteur du terminal
 
 ## Accessibilité
 
-Le terminal reste utilisable au clavier et au lecteur d'écran : l'écran se lit à son rythme, une
+Le bureau se parcourt au clavier (Tab, et les flèches entre les icônes) ; les fenêtres sont des
+boîtes de dialogue natives qui se ferment avec Échap. Le terminal reste utilisable au clavier et au lecteur d'écran : l'écran se lit à son rythme, une
 annonce courte résume chaque commande, la touche Tab ne piège jamais le focus, et tout ce qui
 s'affiche est cliquable. La grille RGAA du site, critère par critère, est dans
 [`ACCESSIBILITE.md`](ACCESSIBILITE.md) ; ses vérifications automatiques tournent à chaque
