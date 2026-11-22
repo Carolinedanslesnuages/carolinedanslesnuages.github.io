@@ -1,5 +1,6 @@
 {
   "dossier": "dist",
-  "budgets": { "js": 600, "css": 20, "html": 5, "total": 650 },
+  "entree": "index.html",
+  "budgets": { "js": 90, "css": 8, "html": 2, "total": 100, "premiere-visite": 75 },
   "imageMax": 200
 }
