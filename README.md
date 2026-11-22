@@ -1,9 +1,9 @@
 # carolinedanslesnuages.github.io
 
 Mon site : un cyberdeck pastel dont l'écran est un bureau. Les projets open source y sont rangés
-dans des dossiers par thème (une bulle dit ce que chacun contient), une barre latérale (terminal, explorateur, humeur, couleur) et un
-widget du poids du site, mesuré par [Solange](https://github.com/Carolinedanslesnuages/solange) à
-chaque publication. Vue 3 + Vite, publié sur GitHub Pages.
+dans des dossiers par thème (une bulle dit ce que chacun contient). Une barre latérale ouvre le
+terminal, l'explorateur, l'humeur et la couleur. Deux widgets donnent l'EcoIndex de la page et les
+vérifications RGAA, calculés à chaque publication. Vue 3 + Vite, publié sur GitHub Pages.
 
 Le site ne contient que l'arborescence des projets (noms des fichiers et des dossiers). Le texte
 d'un fichier est lu sur GitHub au moment où on l'ouvre, dans l'explorateur ou avec `cat`. La
