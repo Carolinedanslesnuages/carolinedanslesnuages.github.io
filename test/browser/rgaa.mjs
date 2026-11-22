@@ -88,7 +88,8 @@ const crypticTexts = await page.evaluate(() => {
 check('13.5', crypticTexts.length === 0, `aucun contenu cryptique restitué${crypticTexts.length ? ' : ' + crypticTexts.join(' | ') : ''}`);
 check('13.5', (await page.textContent('.output')).includes('Deux petits nuages, dessinés en caractères.'), 'le dessin a une alternative dans le contexte');
 // 8.7 change of language
-await runCommand(page, 'cat ~/projets/constance/LICENSE', 300);
+await runCommand(page, 'cat ~/projets/constance/LICENSE');
+await page.waitForSelector('.output .line[lang=en]', { timeout: 15000 });
 check('8.7', (await page.locator('.output .line[lang=en]').count()) > 5, 'la licence en anglais est marquée lang="en"');
 // 6.1 explicit links: the "voir" links of log say which commit they open
 await runCommand(page, 'log', 300);

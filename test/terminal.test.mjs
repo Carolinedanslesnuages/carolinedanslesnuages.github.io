@@ -61,6 +61,22 @@ test('lire un fichier, un binaire, un dossier', () => {
   assert.match(screenText(terminal.execute('cat projets')), /est un dossier/);
 });
 
+test('un fichier du projet est lu sur GitHub : cat attend son texte', () => {
+  const files = { ...FILES, 'projets/constance/AGENTS.md': { url: 'https://github.com/x/constance/blob/main/AGENTS.md', raw: 'https://raw.githubusercontent.com/x/constance/main/AGENTS.md' } };
+  const terminal = createTerminal({ files, data: SITE_DATA });
+  const waiting = terminal.execute('cat projets/constance/AGENTS.md');
+  assert.deepEqual(waiting.pendingFile, { path: 'projets/constance/AGENTS.md', raw: 'https://raw.githubusercontent.com/x/constance/main/AGENTS.md' });
+  assert.match(screenText(waiting), /Lecture de ~\/projets\/constance\/AGENTS\.md sur GitHub/);
+  const shown = terminal.fileLines('projets/constance/AGENTS.md', 'Règles\nde travail\n');
+  assert.match(shown.announcement, /2 lignes/);
+  assert.match(screenText(shown), /de travail/);
+  const unreachable = terminal.fileLines('projets/constance/AGENTS.md', null);
+  assert.match(unreachable.announcement, /impossible de le lire sur GitHub/);
+  assert.ok(unreachable.lines.some((line) => line.parts.some((part) => typeof part === 'object' && part.link && part.link.url.endsWith('/AGENTS.md'))));
+  terminal.execute('cd projets/constance');
+  assert.match(terminal.execute('chercher agents').announcement, /1 fichier/, 'trouvé par son nom, sans son texte');
+});
+
 test('un fichier en anglais est marqué comme tel (RGAA 8.7)', () => {
   const files = { ...FILES, 'projets/constance/LICENSE': { content: 'MIT License\nPermission is hereby granted', lang: 'en', url: 'u' } };
   const terminal = createTerminal({ files, data: SITE_DATA });

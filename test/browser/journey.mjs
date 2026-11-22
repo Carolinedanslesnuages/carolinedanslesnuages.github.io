@@ -101,12 +101,12 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     await page.press('#command', 'Tab');
     check((await page.inputValue('#command')) === 'cat README.md ', 'Tab complète « README.md »');
     await page.press('#command', 'Enter');
-    await page.waitForTimeout(400);
-    check((await page.textContent('.output')).includes('# Val'), 'cat README.md affiche le fichier');
-    await page.fill('#command', 'chercher gitleaks');
+    await page.waitForFunction(() => document.querySelector('.output').textContent.includes('# Val'), null, { timeout: 15000 });
+    check(true, 'cat README.md : le fichier est lu sur GitHub et affiché');
+    await page.fill('#command', 'chercher changelog');
     await page.press('#command', 'Enter');
     await page.waitForTimeout(400);
-    check((await page.locator('.output mark').count()) > 0, 'chercher : dans tous les projets, mots surlignés');
+    check(/\d+ fichier\(s\) pour « changelog »/.test(await page.textContent('.output')), 'chercher : dans les noms de fichiers de tous les projets');
     await page.click('.keys button:has-text("PROJETS")');
     await page.waitForTimeout(300);
     check((await page.textContent('.output')).includes('Projets installés'), 'touche PROJETS : la liste des projets');

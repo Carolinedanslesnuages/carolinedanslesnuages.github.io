@@ -1,11 +1,13 @@
 <script setup>
 /**
  * The file explorer: the projects on the left, the files of the open folder, and a preview of the
- * selected file. A project's files are downloaded only when it is opened.
+ * selected file. A project's file tree is downloaded when it is opened; a file's text is read from
+ * GitHub when it is selected.
  */
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import { createFileSystem } from '../terminal/filesystem.js';
 import { loadProjectFiles } from '../data/project-files.js';
+import { readFileText } from '../data/file-text.js';
 
 const props = defineProps({ projects: { type: Array, required: true } });
 const fileSystem = ref(null);
@@ -15,7 +17,11 @@ const selectedPath = ref('');
 const loading = ref(false);
 const announcement = ref('');
 const entryList = ref(null);
+const previewText = ref(null);
+/** 'none' (not a readable file), 'loading', 'ready' or 'failed'. */
+const previewState = ref('none');
 let openRequest = 0;
+let previewRequest = 0;
 
 const statusLabel = (shown) => (shown.status === 'trial' ? 'essai' : shown.version || 'en cours');
 const projectRoot = computed(() => (project.value ? `projets/${project.value.folder}` : ''));
@@ -24,6 +30,26 @@ const entries = computed(() => (fileSystem.value ? fileSystem.value.childrenOf(c
 const selectedFile = computed(() => (fileSystem.value && selectedPath.value ? fileSystem.value.nodes[selectedPath.value] : null));
 const nameOf = (path) => path.split('/').pop();
 const isFolder = (path) => fileSystem.value.isFolder(path);
+
+watch(selectedFile, async (file) => {
+  const request = ++previewRequest;
+  previewText.value = null;
+  if (!file) return;
+  if (typeof file.content === 'string') {
+    previewText.value = file.content;
+    previewState.value = 'ready';
+    return;
+  }
+  if (!file.raw) {
+    previewState.value = 'none';
+    return;
+  }
+  previewState.value = 'loading';
+  const text = await readFileText(file.raw);
+  if (request !== previewRequest) return; // another file was selected in the meantime
+  previewText.value = text;
+  previewState.value = text === null ? 'failed' : 'ready';
+});
 
 function announce(message) {
   announcement.value = '';
@@ -102,7 +128,9 @@ defineExpose({ openProject, currentProject: () => project.value });
     <article class="explorer-preview" aria-labelledby="explorer-preview-title">
       <template v-if="selectedFile">
         <h3 id="explorer-preview-title">{{ nameOf(selectedPath) }}</h3>
-        <pre v-if="selectedFile.content !== undefined" tabindex="0" :lang="selectedFile.lang" aria-label="Contenu du fichier">{{ selectedFile.content }}</pre>
+        <pre v-if="previewState === 'ready'" tabindex="0" :lang="selectedFile.lang" aria-label="Contenu du fichier">{{ previewText }}</pre>
+        <p v-else-if="previewState === 'loading'" class="explorer-waiting">Lecture du fichier sur GitHub…</p>
+        <p v-else-if="previewState === 'failed'">Impossible de lire ce fichier sur GitHub pour l'instant.</p>
         <p v-else>Ce fichier ne s'affiche pas ici (image, ou fichier trop grand).</p>
         <a v-if="selectedFile.url" :href="selectedFile.url" target="_blank" rel="noopener">Ouvrir {{ nameOf(selectedPath) }} sur GitHub<span class="visually-hidden"> (nouvel onglet)</span></a>
       </template>
