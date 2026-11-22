@@ -1,7 +1,7 @@
 # carolinedanslesnuages.github.io
 
-Mon site : un cyberdeck pastel dont l'écran est un bureau. Une icône par projet open source (une
-bulle dit de quoi il s'agit), une barre latérale (terminal, explorateur, humeur, couleur) et un
+Mon site : un cyberdeck pastel dont l'écran est un bureau. Les projets open source y sont rangés
+dans des dossiers par thème (une bulle dit ce que chacun contient), une barre latérale (terminal, explorateur, humeur, couleur) et un
 widget du poids du site, mesuré par [Solange](https://github.com/Carolinedanslesnuages/solange) à
 chaque publication. Vue 3 + Vite, publié sur GitHub Pages.
 
@@ -14,7 +14,9 @@ commande `chercher` cherche donc dans les noms des fichiers, pas dans leur texte
 1. Le dépôt doit être **public**. La collecte refuse tout dépôt privé, absent ou renommé.
 2. Ajoutez-le dans `projets` de [`site.config.json`](site.config.json), avec son nom exact
    (majuscules comprises) et une accroche courte.
-3. Poussez sur `main` : le site se reconstruit. Il se reconstruit aussi chaque nuit, pour reprendre
+3. Rangez-le dans un des `dossiers` du bureau (par son nom de dépôt). Un projet rangé nulle part
+   reste seul sur le bureau : il n'est jamais caché.
+4. Poussez sur `main` : le site se reconstruit. Il se reconstruit aussi chaque nuit, pour reprendre
    les versions et les fichiers à jour.
 
 Les dossiers d'outillage cachés (`.claude`, `.agents`…), les dépendances et les fichiers générés

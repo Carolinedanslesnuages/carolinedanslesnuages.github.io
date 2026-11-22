@@ -9,7 +9,10 @@ import { createFileSystem } from '../terminal/filesystem.js';
 import { loadProjectFiles } from '../data/project-files.js';
 import { readFileText } from '../data/file-text.js';
 
-const props = defineProps({ projects: { type: Array, required: true } });
+const props = defineProps({
+  projects: { type: Array, required: true },
+  folders: { type: Array, default: () => [] },
+});
 const fileSystem = ref(null);
 const project = ref(null);
 const currentFolder = ref('');
@@ -29,6 +32,15 @@ const relativeFolder = computed(() => currentFolder.value.slice(projectRoot.valu
 const entries = computed(() => (fileSystem.value ? fileSystem.value.childrenOf(currentFolder.value) : []));
 const selectedFile = computed(() => (fileSystem.value && selectedPath.value ? fileSystem.value.nodes[selectedPath.value] : null));
 const nameOf = (path) => path.split('/').pop();
+/** The projects of the left column, grouped like the desktop folders ("Autres" for the rest). */
+const projectGroups = computed(() => {
+  const byFolder = new Map(props.projects.map((listed) => [listed.folder, listed]));
+  const groups = props.folders.map((folder) => ({ name: folder.name, projects: folder.projects.map((projectFolder) => byFolder.get(projectFolder)).filter(Boolean) }));
+  const grouped = new Set(groups.flatMap((group) => group.projects.map((listed) => listed.folder)));
+  const others = props.projects.filter((listed) => !grouped.has(listed.folder));
+  if (others.length) groups.push({ name: groups.length ? 'Autres' : 'Projets', projects: others });
+  return groups;
+});
 const isFolder = (path) => fileSystem.value.isFolder(path);
 
 watch(selectedFile, async (file) => {
@@ -96,11 +108,14 @@ defineExpose({ openProject, currentProject: () => project.value });
 <template>
   <div class="explorer">
     <nav class="explorer-projects" aria-label="Projets de l'explorateur">
-      <ul>
-        <li v-for="listed in props.projects" :key="listed.folder">
-          <button type="button" class="explorer-entry" :aria-current="project && listed.folder === project.folder ? 'true' : undefined" @click="openProject(listed.folder)">{{ listed.name }}</button>
-        </li>
-      </ul>
+      <template v-for="(group, groupIndex) in projectGroups" :key="group.name">
+        <p :id="`explorer-group-${groupIndex}`" class="explorer-group">{{ group.name }}</p>
+        <ul :aria-labelledby="`explorer-group-${groupIndex}`">
+          <li v-for="listed in group.projects" :key="listed.folder">
+            <button type="button" class="explorer-entry" :aria-current="project && listed.folder === project.folder ? 'true' : undefined" @click="openProject(listed.folder)">{{ listed.name }}</button>
+          </li>
+        </ul>
+      </template>
     </nav>
 
     <section class="explorer-files" aria-labelledby="explorer-files-title" :aria-busy="loading">
