@@ -1,14 +1,14 @@
 <script setup>
 /**
  * The cyberdeck, whose screen is a desktop: a dock on the left (terminal, explorer, mood, color),
- * one icon per project, and the weight widget. Projects open in the explorer, in a window.
+ * one icon per project, and the widgets (EcoIndex, accessibility). Projects open in the explorer, in a window.
  */
 import { ref, shallowRef, nextTick, onBeforeUnmount } from 'vue';
 import AppWindow from './components/AppWindow.vue';
 import ExplorerContent from './components/ExplorerContent.vue';
 import ProjectIcons from './components/ProjectIcons.vue';
 import Terminal from './components/Terminal.vue';
-import WeightWidget from './components/WeightWidget.vue';
+import EcoIndexWidget from './components/EcoIndexWidget.vue';
 import AccessibilityWidget from './components/AccessibilityWidget.vue';
 import { createTerminal } from './terminal/engine.js';
 import { loadAllFiles } from './data/project-files.js';
@@ -124,7 +124,7 @@ onBeforeUnmount(() => clearInterval(clockTimer));
           </nav>
           <ProjectIcons :projects="siteData.projects" @open="(project) => openExplorer(project.folder)" />
           <div class="widgets">
-            <WeightWidget />
+            <EcoIndexWidget />
             <AccessibilityWidget />
           </div>
         </div>

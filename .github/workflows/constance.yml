@@ -54,6 +54,32 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
       - uses: Carolinedanslesnuages/solange@v1
 
+  ecoindex:
+    name: EcoIndex de la page (méthode officielle)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Collecter les projets et construire le site
+        run: npm run collect && npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Mesurer et calculer l'EcoIndex
+        run: |
+          set -o pipefail
+          python3 -m venv "$RUNNER_TEMP/ecoindex"
+          "$RUNNER_TEMP/ecoindex/bin/pip" install --quiet ecoindex_compute==5.10.0
+          npx vite preview --port 4173 &
+          npx wait-on@8.0.1 -t 30000 http://localhost:4173/
+          node scripts/measure-ecoindex.mjs http://localhost:4173/ > "$RUNNER_TEMP/mesure-ecoindex.json"
+          "$RUNNER_TEMP/ecoindex/bin/python" scripts/compute-ecoindex.py "$RUNNER_TEMP/mesure-ecoindex.json" "$RUNNER_TEMP/ecoindex.json" | tee -a "$GITHUB_STEP_SUMMARY"
+
   resume:
     name: Résumé pour la relecture (Annie)
     if: github.event_name == 'pull_request'
