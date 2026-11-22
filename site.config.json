@@ -90,5 +90,48 @@
       "accroche": "Le carbone de mon usage de l'IA"
     }
   ],
-  "bientot": []
+  "bientot": [],
+  "dossiers": [
+    {
+      "nom": "Pull requests",
+      "accroche": "Pour relire sereinement ce que propose un agent",
+      "projets": [
+        "constance",
+        "annie",
+        "madeleine",
+        "emmanuelle",
+        "rose",
+        "reine"
+      ]
+    },
+    {
+      "nom": "Agents",
+      "accroche": "Des consignes, des skills et des mesures pour les agents de code",
+      "projets": [
+        "pauline",
+        "olympe",
+        "emilie",
+        "marguerite",
+        "val"
+      ]
+    },
+    {
+      "nom": "Sites",
+      "accroche": "Des sites, et le modèle de ce cyberdeck",
+      "projets": [
+        "niki",
+        "marie",
+        "severine",
+        "simone"
+      ]
+    },
+    {
+      "nom": "Au quotidien",
+      "accroche": "Des outils pour tous les jours",
+      "projets": [
+        "anais",
+        "Irene"
+      ]
+    }
+  ]
 }

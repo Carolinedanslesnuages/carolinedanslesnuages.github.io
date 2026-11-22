@@ -13,7 +13,7 @@ const browser = await chromium.launch();
 const errors = [];
 const activeLabel = (page) => page.evaluate(() => {
   const element = document.activeElement;
-  return element ? (element.getAttribute('aria-label') || element.dataset.folder || element.id || element.textContent || '').trim() : '';
+  return element ? (element.getAttribute('aria-label') || element.dataset.item || element.dataset.project || element.id || element.textContent || '').trim() : '';
 });
 const axeViolations = async (page) => {
   if (!(await page.evaluate(() => !!window.axe))) await page.addScriptTag({ content: AXE_SOURCE });
@@ -49,35 +49,42 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
   await page.goto(SITE_URL);
   await page.waitForSelector('.icon');
   const iconCount = await page.locator('.icon').count();
-  check(iconCount >= 10, `${deviceName} : bureau affiché, ${iconCount} icônes de projet`);
+  check(iconCount >= 4 && iconCount < 10, `${deviceName} : bureau rangé, ${iconCount} icônes (des dossiers par thème)`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check(overflow <= 0, `${deviceName} : pas de défilement horizontal (${overflow}px)`);
   check((await page.evaluate(() => performance.getEntriesByType('resource').filter((entry) => /assets\/(constance|marie)-/.test(entry.name)).length)) === 0, `${deviceName} : aucun projet téléchargé avant son ouverture`);
 
   if (deviceName === 'ordinateur') {
-    // Info bubble: hover, keyboard focus, Escape
-    const constance = page.locator('.icon[data-folder="constance"]');
-    const bubble = page.locator('#bubble-constance');
-    await constance.hover();
-    check(await bubble.isVisible(), 'survol : la bulle de Constance apparaît');
-    check((await bubble.textContent()).includes('Mes règles de PR'), "la bulle dit de quoi il s'agit");
-    await page.locator('#bubble-constance').hover();
+    // Info bubble of a folder: hover, keyboard focus, Escape
+    const firstFolder = page.locator('.icon[data-item="dossier-0"]');
+    const bubble = page.locator('#bubble-dossier-0');
+    await firstFolder.hover();
+    check(await bubble.isVisible(), 'survol : la bulle du dossier « Pull requests » apparaît');
+    check((await bubble.textContent()).includes('Constance'), "la bulle dit ce que contient le dossier");
+    await bubble.hover();
     check(await bubble.isVisible(), 'la bulle reste visible quand la souris passe dessus');
     await page.mouse.move(5, 5);
     check(!(await bubble.isVisible()), 'la souris part : la bulle disparaît');
-    await page.focus('.icon[data-folder="annie"]');
-    await page.keyboard.press('ArrowRight');
-    check((await activeLabel(page)) === 'constance', 'flèche droite : icône suivante');
+    await page.focus('.icon[data-item="dossier-1"]');
+    await page.keyboard.press('ArrowLeft');
+    check((await activeLabel(page)) === 'dossier-0', 'flèche gauche : icône précédente');
     check(await bubble.isVisible(), 'focus clavier : la bulle apparaît');
-    check((await constance.getAttribute('aria-describedby')) === 'bubble-constance', 'la bulle décrit le bouton (aria-describedby)');
+    check((await firstFolder.getAttribute('aria-describedby')) === 'bubble-dossier-0', 'la bulle décrit le bouton (aria-describedby)');
+    check((await firstFolder.textContent()).includes('dossier de 6 projets'), 'le lecteur d\'écran entend que c\'est un dossier, et sa taille');
     await page.keyboard.press('Escape');
     check(!(await bubble.isVisible()), 'Échap ferme la bulle');
 
-    // Explorer: opened from an icon, folders, preview, Escape, focus back
+    // Folder window, then the explorer on top of it
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('.folder-entry');
+    check((await page.textContent('#folder-window-title')) === 'Pull requests', "Entrée sur le dossier : sa fenêtre s'ouvre");
+    check((await activeLabel(page)) === 'constance', 'le focus va sur le premier projet du dossier');
+    reportAxe(await axeViolations(page), 'dossier ouvert');
     await page.keyboard.press('Enter');
     await page.waitForSelector('.explorer pre');
-    check(await page.locator('#explorer-window-title').isVisible(), "Entrée sur l'icône : l'explorateur s'ouvre");
+    check(await page.locator('#explorer-window-title').isVisible(), "Entrée sur un projet : l'explorateur s'ouvre par-dessus");
     check((await page.textContent('.explorer pre')).includes('# Constance'), 'aperçu du README de Constance');
+    check((await page.locator('.explorer-group').allTextContents()).includes('Pull requests'), "l'explorateur range les projets comme les dossiers");
     await page.click('.explorer-list button:has-text("titre-pr/")');
     check((await page.textContent('.explorer-path')).includes('~/constance/titre-pr'), 'clic sur un dossier : on y entre');
     check((await activeLabel(page)).includes('Dossier parent'), 'le focus va sur la première entrée du dossier');
@@ -88,7 +95,9 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     reportAxe(await axeViolations(page), 'explorateur ouvert');
     await page.keyboard.press('Escape');
     check(!(await page.locator('#explorer-window-title').isVisible()), "Échap ferme l'explorateur");
-    check((await activeLabel(page)) === 'constance', "le focus revient sur l'icône qui l'a ouvert");
+    check((await activeLabel(page)) === 'constance', 'le focus revient sur le projet, dans la fenêtre du dossier');
+    await page.keyboard.press('Escape');
+    check((await page.locator('dialog[open]').count()) === 0 && (await activeLabel(page)) === 'dossier-0', "Échap encore : retour au bureau, sur l'icône du dossier");
 
     // Terminal: opened from the dock
     await page.click('button[aria-label="Terminal"]');
@@ -127,12 +136,17 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     check((await page.getAttribute('main.deck', 'data-palette')) === 'menthe', 'touche couleur : coque menthe');
     check((await page.textContent('main > [role=status]')).includes('Coque : menthe'), 'le changement de couleur est annoncé');
   } else {
-    await page.click('.icon[data-folder="anais"]');
+    await page.click('.icon[data-item="dossier-3"]');
+    await page.waitForSelector('.folder-entry');
+    const folderWidth = await page.evaluate(() => document.querySelector('dialog[open]').getBoundingClientRect().width);
+    check(Math.abs(folderWidth - viewport.width) <= 1, `téléphone : le dossier prend tout l'écran (${Math.round(folderWidth)} px)`);
+    await page.click('.folder-entry[data-project="anais"]');
     await page.waitForSelector('.explorer pre');
     const windowWidth = await page.evaluate(() => document.querySelector('dialog[open]').getBoundingClientRect().width);
     check(Math.abs(windowWidth - viewport.width) <= 1, `téléphone : l'explorateur prend tout l'écran (${Math.round(windowWidth)} px)`);
     check((await page.textContent('.explorer-tagline')).includes('bullet journal'), "téléphone : l'accroche du projet est en haut de l'explorateur");
-    await page.click('.window-close');
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
   }
   await page.waitForSelector('.eco-widget');
   check(/^EcoIndex de la page\s*B 72\/100/.test((await page.textContent('.eco-widget')).trim()), `${deviceName} : widget EcoIndex, la note et le score`);

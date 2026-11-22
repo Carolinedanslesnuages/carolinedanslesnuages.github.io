@@ -9,6 +9,7 @@ import { ref, nextTick } from 'vue';
 const props = defineProps({
   title: { type: String, required: true },
   windowId: { type: String, required: true },
+  compact: { type: Boolean, default: false },
 });
 const emit = defineEmits(['opened', 'closed']);
 const dialog = ref(null);
@@ -38,7 +39,7 @@ defineExpose({ open, close });
 </script>
 
 <template>
-  <dialog ref="dialog" class="window" :aria-labelledby="`${props.windowId}-title`" @close="onClose">
+  <dialog ref="dialog" :class="['window', { compact: props.compact }]" :aria-labelledby="`${props.windowId}-title`" @close="onClose">
     <div class="window-bar">
       <h2 :id="`${props.windowId}-title`">{{ props.title }}</h2>
       <span class="window-hint" aria-hidden="true">Échap pour fermer</span>

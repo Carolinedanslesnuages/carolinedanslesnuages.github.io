@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerminal, MOODS } from '../src/terminal/engine.js';
 import { resolvePath } from '../src/terminal/filesystem.js';
-import { keepPath, namesakeOf } from '../scripts/collect.mjs';
+import { keepPath, namesakeOf, desktopFolders } from '../scripts/collect.mjs';
 
 const FILES = {
   'projets/constance/README.md': { content: '# Constance\n\nGitleaks vérifié.\nLigne 4', url: 'https://github.com/x/constance/blob/main/README.md' },
@@ -135,6 +135,14 @@ test('collecte : pourquoi ce nom, repris du README en texte simple', () => {
   assert.equal(namesakeOf(readme), 'Le nom rend hommage à Valérie, au GIEC.');
   assert.equal(namesakeOf('# Sans\n\nAucune explication.'), '');
   assert.equal(namesakeOf(undefined), '');
+});
+
+test('collecte : dossiers du bureau, et un dépôt inconnu arrête tout', () => {
+  const configured = [{ depot: 'constance' }, { depot: 'Irene', nom: 'Irène' }];
+  const projects = [{ folder: 'constance' }, { folder: 'irene' }];
+  assert.deepEqual(desktopFolders([{ nom: 'Pull requests', accroche: 'Relire', projets: ['constance', 'Irene'] }], projects, configured), [{ name: 'Pull requests', tagline: 'Relire', projects: ['constance', 'irene'] }]);
+  assert.throws(() => desktopFolders([{ nom: 'Sites', projets: ['inconnu'] }], projects, configured), /cite « inconnu »/);
+  assert.deepEqual(desktopFolders(undefined, projects, configured), []);
 });
 
 test('collecte : dossiers cachés et dépendances écartés', () => {

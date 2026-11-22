@@ -3,10 +3,11 @@
  * The cyberdeck, whose screen is a desktop: a dock on the left (terminal, explorer, mood, color),
  * one icon per project, and the widgets (EcoIndex, accessibility). Projects open in the explorer, in a window.
  */
-import { ref, shallowRef, nextTick, onBeforeUnmount } from 'vue';
+import { ref, shallowRef, computed, nextTick, onBeforeUnmount } from 'vue';
 import AppWindow from './components/AppWindow.vue';
 import ExplorerContent from './components/ExplorerContent.vue';
-import ProjectIcons from './components/ProjectIcons.vue';
+import DesktopIcons from './components/DesktopIcons.vue';
+import FolderContent from './components/FolderContent.vue';
 import Terminal from './components/Terminal.vue';
 import EcoIndexWidget from './components/EcoIndexWidget.vue';
 import AccessibilityWidget from './components/AccessibilityWidget.vue';
@@ -18,6 +19,8 @@ const terminal = shallowRef(null);
 const terminalView = ref(null);
 const terminalWindow = ref(null);
 const explorerWindow = ref(null);
+const folderWindow = ref(null);
+const openFolderItem = ref(null);
 const explorer = ref(null);
 const announcement = ref('');
 /** Palette names are shown to the visitor ("Coque : menthe"): they stay in French. */
@@ -75,6 +78,32 @@ function openExplorer(folder) {
   explorerWindow.value.open(() => document.querySelector('.explorer-projects [aria-current="true"]'));
 }
 
+const projectByFolder = new Map(siteData.projects.map((project) => [project.folder, project]));
+const statusLabel = (project) => (project.status === 'trial' ? 'essai' : project.version || 'en cours');
+
+/** Desktop icons: the theme folders, then the projects kept in no folder (never hidden). */
+const desktopItems = computed(() => {
+  const folders = siteData.folders || [];
+  const inFolders = new Set(folders.flatMap((folder) => folder.projects));
+  const folderItems = folders.map((folder, index) => {
+    const projects = folder.projects.map((projectFolder) => projectByFolder.get(projectFolder)).filter(Boolean);
+    return {
+      id: `dossier-${index}`, kind: 'folder', name: folder.name, count: projects.length,
+      description: folder.tagline, detail: projects.map((project) => project.name).join(', '), folder: { ...folder, projects },
+    };
+  });
+  const looseItems = siteData.projects
+    .filter((project) => !inFolders.has(project.folder))
+    .map((project) => ({ id: project.folder, kind: 'project', name: project.name, letter: project.name.charAt(0), description: project.tagline, detail: statusLabel(project), project }));
+  return [...folderItems, ...looseItems];
+});
+
+function openDesktopItem(item) {
+  if (item.kind === 'project') return openExplorer(item.project.folder);
+  openFolderItem.value = item.folder;
+  folderWindow.value.open(() => document.querySelector('.folder-entry'));
+}
+
 const DOCK_APPS = [
   { label: 'Terminal', glyph: '>_', tint: 'pink', action: () => openTerminal() },
   { label: 'Explorateur de fichiers', glyph: '▤', tint: 'mint', action: () => openExplorer() },
@@ -122,7 +151,7 @@ onBeforeUnmount(() => clearInterval(clockTimer));
               </li>
             </ul>
           </nav>
-          <ProjectIcons :projects="siteData.projects" @open="(project) => openExplorer(project.folder)" />
+          <DesktopIcons :items="desktopItems" @open="openDesktopItem" />
           <div class="widgets">
             <EcoIndexWidget />
             <AccessibilityWidget />
@@ -130,8 +159,12 @@ onBeforeUnmount(() => clearInterval(clockTimer));
         </div>
       </section>
 
+      <AppWindow ref="folderWindow" compact :title="openFolderItem ? openFolderItem.name : 'Dossier'" window-id="folder-window">
+        <FolderContent :folder="openFolderItem" :projects="openFolderItem ? openFolderItem.projects : []" @open="(project) => openExplorer(project.folder)" />
+      </AppWindow>
+
       <AppWindow ref="explorerWindow" title="Explorateur" window-id="explorer-window">
-        <ExplorerContent ref="explorer" :projects="siteData.projects" />
+        <ExplorerContent ref="explorer" :projects="siteData.projects" :folders="siteData.folders || []" />
       </AppWindow>
 
       <AppWindow ref="terminalWindow" title="Terminal" window-id="terminal-window">

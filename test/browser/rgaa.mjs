@@ -43,14 +43,15 @@ for (let step = 0; step < 8; step++) {
   await page.keyboard.press('Tab');
   tabOrder.push(await page.evaluate(() => {
     const element = document.activeElement;
-    return (element.getAttribute('aria-label') || element.dataset.folder || element.textContent || '').trim().slice(0, 30);
+    return (element.getAttribute('aria-label') || element.dataset.item || element.textContent || '').trim().slice(0, 30);
   }));
 }
 console.log('   ordre :', tabOrder.join(' → '));
-const firstIcon = await page.locator('.icon').first().getAttribute('data-folder');
+const firstIcon = await page.locator('.icon').first().getAttribute('data-item');
 check('12.8', tabOrder[1] === 'Terminal' && tabOrder[4] === 'Changer la couleur du boîtier' && tabOrder[5] === firstIcon, 'lien d\'évitement, barre latérale, puis icônes');
 // 9.3 lists
-check('9.3', (await page.locator('ul#projects > li > button.icon').count()) >= 10, 'icônes de projet en <ul>/<li>');
+check('9.3', (await page.locator('ul#projects > li > button.icon').count()) >= 4, 'icônes du bureau (dossiers et projets) en <ul>/<li>');
+check('9.3', (await page.locator('.explorer-projects ul[aria-labelledby]').count()) >= 4, "projets de l'explorateur en listes titrées, une par dossier");
 check('9.3', (await page.locator('nav.dock ul > li > button').count()) === 4, 'barre latérale en <ul>/<li>');
 // 1.4.13 (WCAG) info bubble: on focus, it describes the icon and closes with Escape
 await page.focus('.icon');
@@ -131,13 +132,18 @@ const axeViolations = await page.evaluate(async ({ source, rules }) => {
 check('axe', axeViolations.length === 0, `axe-core : ${axeViolations.length ? axeViolations.join(', ') : '0 violation'}`);
 await page.keyboard.press('Escape');
 await page.click('.icon');
+await page.waitForSelector('.folder-entry');
+await page.focus('.folder-entry');
+check('10.7', parseFloat(await page.evaluate(() => getComputedStyle(document.activeElement).outlineWidth)) >= 2, 'focus visible sur .folder-entry');
+await page.click('.folder-entry');
 await page.waitForSelector('.explorer pre');
 for (const selector of ['.explorer-entry', '.explorer pre', '.explorer-preview a']) {
   await page.focus(selector);
   const visible = await page.evaluate(() => parseFloat(getComputedStyle(document.activeElement).outlineWidth) >= 2 && getComputedStyle(document.activeElement).outlineStyle !== 'none');
   check('10.7', visible, `focus visible sur ${selector}`);
 }
-await page.keyboard.press('Escape');
+await page.keyboard.press('Escape'); // the explorer
+await page.keyboard.press('Escape'); // the folder
 for (const selector of ['.icon', '.dock-key']) {
   await page.focus(selector);
   const visible = await page.evaluate(() => parseFloat(getComputedStyle(document.activeElement).outlineWidth) >= 2 && getComputedStyle(document.activeElement).outlineStyle !== 'none');

@@ -114,6 +114,23 @@ async function collectProject(account, configured) {
   };
 }
 
+/**
+ * The desktop folders of site.config.json ("dossiers"), with the folder names of their projects.
+ * A project in no folder stays alone on the desktop; an unknown repository stops the collection.
+ */
+export function desktopFolders(configuredFolders = [], projects = [], configuredProjects = []) {
+  const folderOfRepository = new Map(configuredProjects.map((configured, index) => [configured.depot, projects[index] && projects[index].folder]));
+  return configuredFolders.map((configuredFolder) => ({
+    name: configuredFolder.nom,
+    tagline: configuredFolder.accroche || '',
+    projects: (configuredFolder.projets || []).map((repository) => {
+      const folder = folderOfRepository.get(repository);
+      if (!folder) throw new Error(`Le dossier « ${configuredFolder.nom} » cite « ${repository} », absent de « projets » dans site.config.json.`);
+      return folder;
+    }),
+  }));
+}
+
 async function main() {
   const config = JSON.parse(await readFile(new URL('../site.config.json', import.meta.url), 'utf8'));
   const projects = [];
@@ -132,6 +149,7 @@ async function main() {
     words: config.mots || [],
     presentation: config.presentation || [],
     projects,
+    folders: desktopFolders(config.dossiers, projects, config.projets),
     upcoming: (config.bientot || []).map((upcoming) => ({ name: upcoming.nom, tagline: upcoming.accroche })),
   };
   const filesFolder = new URL('../src/data/files/', import.meta.url);
