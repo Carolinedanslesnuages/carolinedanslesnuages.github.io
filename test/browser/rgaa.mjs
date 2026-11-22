@@ -44,7 +44,9 @@ for (let step = 0; step < 12; step++) {
 }
 console.log('   ordre :', tabOrder.join(' → '));
 const firstKey = tabOrder.indexOf('MOI');
-const firstCartridge = tabOrder.findIndex((label) => label.startsWith('Constance'));
+// The first cartridge is read from the page: the order follows site.config.json (alphabetical).
+const firstCartridgeName = (await page.locator('button.cartridge b').first().textContent()).trim();
+const firstCartridge = tabOrder.findIndex((label) => label.startsWith(firstCartridgeName));
 const commandField = tabOrder.indexOf('command');
 check('12.8', tabOrder[1] === 'Écran du terminal' && commandField > 1 && firstKey === commandField + 1 && firstCartridge > firstKey, 'écran (et ses liens), champ, touches, puis cartouches');
 // 9.3 lists
