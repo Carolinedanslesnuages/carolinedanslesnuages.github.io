@@ -14,6 +14,8 @@ commande `chercher` cherche donc dans les noms des fichiers, pas dans leur texte
 1. Le dépôt doit être **public**. La collecte refuse tout dépôt privé, absent ou renommé.
 2. Ajoutez-le dans `projets` de [`site.config.json`](site.config.json), avec son nom exact
    (majuscules comprises) et une accroche courte.
+   Avec `masquer`, une liste de fichiers ou de dossiers du dépôt, ce qui ne regarde pas les
+   visiteurs reste hors du site (ex. `["revues", "ada.json"]`).
 3. Rangez-le dans un des `dossiers` du bureau (par son nom de dépôt). Un projet rangé nulle part
    reste seul sur le bureau : il n'est jamais caché.
 4. Poussez sur `main` : le site se reconstruit. Il se reconstruit aussi chaque nuit, pour reprendre

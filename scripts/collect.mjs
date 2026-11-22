@@ -68,12 +68,20 @@ async function readReadme(account, repository) {
   return response.ok ? response.text() : '';
 }
 
-async function collectFiles(account, repository, folder) {
+/** Path hidden by the project's « masquer » list (a file, or a folder and all it holds). */
+export function isHidden(path, hiddenPaths = []) {
+  return hiddenPaths.some((hidden) => {
+    const folder = hidden.replace(/\/+$/, '');
+    return path === folder || path.startsWith(`${folder}/`);
+  });
+}
+
+async function collectFiles(account, repository, folder, hiddenPaths = []) {
   const branch = repository.default_branch;
   const tree = await fetchGithub(`/repos/${account}/${repository.name}/git/trees/${encodeURIComponent(branch)}?recursive=1`);
   const files = {};
   for (const item of tree.tree) {
-    if (!keepPath(item.path)) continue;
+    if (!keepPath(item.path) || isHidden(item.path, hiddenPaths)) continue;
     const sitePath = `projets/${folder}/${item.path}`;
     if (item.type === 'tree') {
       files[sitePath] = { folder: true };
@@ -110,7 +118,7 @@ async function collectProject(account, configured) {
       url: repository.html_url,
       commits,
     },
-    files: await collectFiles(account, repository, folder),
+    files: await collectFiles(account, repository, folder, configured.masquer),
   };
 }
 
