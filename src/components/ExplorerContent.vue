@@ -106,6 +106,7 @@ defineExpose({ openProject, currentProject: () => project.value });
     <section class="explorer-files" aria-labelledby="explorer-files-title" :aria-busy="loading">
       <template v-if="project">
         <h3 id="explorer-files-title">{{ project.name }} <small>· {{ statusLabel(project) }}</small></h3>
+        <p v-if="project.namesake" class="explorer-namesake">{{ project.namesake }}</p>
         <p class="explorer-tagline">{{ project.tagline }}</p>
         <p v-if="loading">Chargement des fichiers…</p>
         <template v-else>

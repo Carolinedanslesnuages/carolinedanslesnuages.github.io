@@ -83,6 +83,7 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     await page.click('.explorer-projects button:has-text("Val")');
     await page.waitForFunction(() => document.querySelector('.explorer pre')?.textContent.includes('# Val'));
     check(true, "changer de projet dans l'explorateur : README de Val");
+    check(/^Le nom /.test((await page.textContent('.explorer-namesake')) || ''), "sous le nom du projet : pourquoi ce nom");
     reportAxe(await axeViolations(page), 'explorateur ouvert');
     await page.keyboard.press('Escape');
     check(!(await page.locator('#explorer-window-title').isVisible()), "Échap ferme l'explorateur");
