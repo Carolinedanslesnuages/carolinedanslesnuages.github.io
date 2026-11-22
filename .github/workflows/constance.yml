@@ -36,6 +36,24 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: Carolinedanslesnuages/constance/nommage-fichiers@v1
 
+  poids:
+    name: Poids du site (Solange)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Collecter les projets et construire le site
+        run: npm run collect && npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: Carolinedanslesnuages/solange@v1
+
   resume:
     name: Résumé pour la relecture (Annie)
     if: github.event_name == 'pull_request'
