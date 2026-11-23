@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 
 const SITE_URL = process.env.URL || 'http://localhost:4173/';
 const AXE_SOURCE = readFileSync('node_modules/axe-core/axe.min.js', 'utf8');
+/** The first folder of the desktop, as site.config.json lists it: the test follows the config. */
+const FIRST_FOLDER = JSON.parse(readFileSync('site.config.json', 'utf8')).dossiers[0];
 let failureCount = 0;
 const check = (passed, message) => {
   if (!passed) failureCount++;
@@ -70,7 +72,7 @@ for (const [deviceName, viewport] of [['ordinateur', { width: 1280, height: 900 
     check((await activeLabel(page)) === 'dossier-0', 'flèche gauche : icône précédente');
     check(await bubble.isVisible(), 'focus clavier : la bulle apparaît');
     check((await firstFolder.getAttribute('aria-describedby')) === 'bubble-dossier-0', 'la bulle décrit le bouton (aria-describedby)');
-    check((await firstFolder.textContent()).includes('dossier de 6 projets'), 'le lecteur d\'écran entend que c\'est un dossier, et sa taille');
+    check((await firstFolder.textContent()).includes(`dossier de ${FIRST_FOLDER.projets.length} projets`), 'le lecteur d\'écran entend que c\'est un dossier, et sa taille');
     await page.keyboard.press('Escape');
     check(!(await bubble.isVisible()), 'Échap ferme la bulle');
 
